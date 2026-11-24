@@ -1,0 +1,29 @@
+@startuml
+title Rooted – Sequência: transferência de ingresso
+actor "Titular" as Titular
+actor "Novo titular" as Novo
+boundary "React" as React
+control "API (Spring Boot)" as API
+database "MySQL" as DB
+participant "Resend (e-mail)" as Email
+
+Titular -> React : "Transferir ingresso" com o e-mail do novo titular
+React -> API : POST /api/inscricoes/{id}/transferir { email }
+activate API
+API -> API : confere se faltam mais de 24 horas para o evento
+API -> DB : transferência PENDENTE (vence 24 horas antes do evento)
+API -> Email : convite com link de uso único
+API --> React : convite enviado
+deactivate API
+Email -> Novo : e-mail com o convite
+Novo -> React : abre o link e entra ou cria a conta
+React -> API : POST /api/transferencias/{codigo}/aceitar
+activate API
+API -> DB : confere o link (existe, não venceu, não foi usado)
+API -> DB : inscrição antiga TRANSFERIDA
+API -> DB : nova inscrição ATIVA para o novo titular (origem = antiga)
+API -> DB : transferência ACEITA
+API --> React : ingresso ligado ao QR pessoal do novo titular
+deactivate API
+API -> Email : avisa o antigo titular
+@enduml

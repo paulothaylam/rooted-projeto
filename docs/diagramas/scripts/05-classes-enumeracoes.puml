@@ -1,0 +1,121 @@
+@startuml
+title Rooted – Enumerações (valores permitidos)
+
+enum PapelGlobal {
+  PARTICIPANTE
+  ADMIN_SEEDS
+}
+enum NivelConta {
+  NENHUM
+  BRONZE
+  PRATA
+  OURO
+}
+enum DocumentoTermos {
+  TERMOS_PARTICIPANTE
+  TERMOS_ORGANIZADOR
+  PRIVACIDADE
+}
+enum SituacaoOrganizacao {
+  PENDENTE
+  APROVADA
+  RECUSADA
+  BLOQUEADA
+}
+enum PapelOrganizacao {
+  ADMINISTRADOR
+  CREDENCIAMENTO
+}
+enum SituacaoContaMp {
+  CONECTADA
+  DESCONECTADA
+  ERRO
+}
+enum TipoEvento {
+  PAGO
+  GRATUITO
+  BENEFICENTE
+}
+enum SituacaoEvento {
+  RASCUNHO
+  EM_APROVACAO
+  PUBLICADO
+  CANCELADO
+  ENCERRADO
+}
+enum PagadorTaxas {
+  ORGANIZADOR
+  PARTICIPANTE
+}
+enum PoliticaReembolso {
+  INTEGRAL_ATE_DATA
+  PARCIAL_ATE_DATA
+  SO_TRANSFERENCIA
+}
+enum DecisaoAprovacao {
+  APROVADA
+  RECUSADA
+  BLOQUEADA
+  DESBLOQUEADA
+}
+enum TipoLocal {
+  PRESENCIAL
+  ONLINE
+}
+enum PublicoIngresso {
+  GERAL
+  ESTUDANTE
+  PROFISSIONAL
+  CONVIDADO
+}
+enum SituacaoPedido {
+  RESERVADO
+  PENDENTE
+  APROVADO
+  RECUSADO
+  EXPIRADO
+  REEMBOLSADO
+}
+enum FormaPagamento {
+  CARTAO
+  PIX
+  BOLETO
+}
+enum SituacaoReserva {
+  ATIVA
+  CONVERTIDA
+  LIBERADA
+}
+enum SituacaoInscricao {
+  ATIVA
+  CANCELADA
+  TRANSFERIDA
+}
+enum SituacaoTransferencia {
+  PENDENTE
+  ACEITA
+  CANCELADA
+  EXPIRADA
+}
+enum MotivoReembolso {
+  ATE_7_DIAS
+  POLITICA_EVENTO
+  EVENTO_CANCELADO
+  ADMIN
+}
+enum SituacaoReembolso {
+  SOLICITADO
+  CONCLUIDO
+  FALHOU
+}
+enum MetodoCheckin {
+  QR
+  MANUAL
+}
+enum SituacaoAviso {
+  RECEBIDO
+  PROCESSADO
+  IGNORADO
+  ERRO
+}
+@enduml

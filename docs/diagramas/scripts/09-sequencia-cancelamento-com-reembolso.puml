@@ -1,0 +1,34 @@
+@startuml
+title Rooted – Sequência: cancelamento com reembolso
+actor "Participante" as Pessoa
+boundary "React" as React
+control "API (Spring Boot)" as API
+database "MySQL" as DB
+participant "Mercado Pago" as MP
+participant "Resend (e-mail)" as Email
+
+Pessoa -> React : clica em "Cancelar inscrição"
+React -> API : POST /api/inscricoes/{id}/cancelar
+activate API
+API -> DB : busca a inscrição, o pedido e o evento
+API -> API : confere se a inscrição é de quem pede
+API -> API : calcula o valor (total até 7 dias; depois, a política do evento)
+alt valor igual a zero
+  API -> DB : inscrição CANCELADA e vagas_ocupadas - 1
+else valor maior que zero
+  API -> DB : reembolso SOLICITADO
+  API -> MP : POST /v1/payments/{id}/refunds { amount }
+  alt reembolso aceito
+    MP --> API : id do reembolso
+    API -> DB : reembolso CONCLUIDO, pedido REEMBOLSADO
+    API -> DB : inscrição CANCELADA e vagas_ocupadas - 1
+  else organizador sem saldo
+    MP --> API : erro
+    API -> DB : reembolso FALHOU com a mensagem (a inscrição continua ativa)
+    API -> Email : avisa o participante, o organizador e a Seeds
+  end
+end
+API --> React : resultado do cancelamento
+deactivate API
+Email -> Pessoa : e-mail com o resultado
+@enduml

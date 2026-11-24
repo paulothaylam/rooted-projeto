@@ -1,0 +1,48 @@
+@startuml
+title Rooted – Atividade: comprar ingresso
+start
+:Abrir a página do evento;
+:Escolher o tipo de ingresso;
+if (Está logado?) then (não)
+  :Entrar ou criar a conta;
+else (sim)
+endif
+if (Perfil tem CPF?) then (não)
+  :Completar o perfil;
+else (sim)
+endif
+if (Evento gratuito?) then (sim)
+  :Criar a inscrição ativa;
+  :Enviar e-mail com QR Code e arquivo .ics;
+  stop
+else (não)
+endif
+if (Há vaga e a venda está aberta?) then (não)
+  :Mostrar ingresso esgotado;
+  stop
+else (sim)
+endif
+:Reservar a vaga por 15 minutos;
+:Calcular a taxa da Seeds;
+:Criar a preferência no Mercado Pago;
+:Pagar no Checkout Pro;
+:Receber o aviso de pagamento;
+if (Pagamento aprovado?) then (sim)
+  :Criar a inscrição ativa;
+  :Enviar e-mail com QR Code e arquivo .ics;
+else (não)
+  if (Pix ou boleto pendente?) then (sim)
+    :Manter a vaga reservada até o vencimento;
+    if (Pagou antes de vencer?) then (sim)
+      :Criar a inscrição ativa;
+      :Enviar e-mail com QR Code e arquivo .ics;
+    else (não)
+      :Liberar a vaga;
+    endif
+  else (não)
+    :Liberar a vaga;
+    :Mostrar pagamento recusado;
+  endif
+endif
+stop
+@enduml

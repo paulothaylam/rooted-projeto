@@ -1,0 +1,10 @@
+@startuml
+title Rooted – Estados da organização
+[*] --> PENDENTE : pedido "Quero organizar eventos"
+PENDENTE --> APROVADA : Seeds aprova
+PENDENTE --> RECUSADA : Seeds recusa, com motivo
+APROVADA : do / cria eventos e conecta o Mercado Pago
+APROVADA --> BLOQUEADA : Seeds bloqueia, com motivo
+BLOQUEADA --> APROVADA : Seeds desbloqueia
+RECUSADA --> [*]
+@enduml

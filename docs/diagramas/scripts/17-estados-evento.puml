@@ -1,0 +1,15 @@
+@startuml
+title Rooted – Estados do evento
+[*] --> RASCUNHO : organizador cria
+RASCUNHO --> PUBLICADO : publicar [gratuito, ou pago com Mercado Pago conectado]
+RASCUNHO --> EM_APROVACAO : publicar [beneficente]
+EM_APROVACAO --> PUBLICADO : Seeds aprova
+EM_APROVACAO --> RASCUNHO : Seeds recusa, com motivo
+PUBLICADO : entry / gera o link de divulgação
+PUBLICADO --> CANCELADO : organizador cancela
+CANCELADO : entry / reembolsa e avisa todos os inscritos
+PUBLICADO --> ENCERRADO : fim do evento
+RASCUNHO --> [*] : rascunho apagado
+CANCELADO --> [*]
+ENCERRADO --> [*]
+@enduml

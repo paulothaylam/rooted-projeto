@@ -1,0 +1,38 @@
+@startuml
+title Rooted – Atividade: criar e publicar evento
+start
+if (Usar um modelo?) then (sim)
+  :Copiar o modelo, sem datas e sem inscritos;
+else (não)
+endif
+:Preencher nome, descrição, datas, capa e tipo;
+:Cadastrar os locais;
+:Criar os tipos de ingresso;
+if (Evento pago ou beneficente?) then (sim)
+  :Definir formas de pagamento, parcelas e quem paga as taxas;
+  :Escolher a política de reembolso;
+else (não)
+endif
+:Salvar como rascunho;
+if (Pago ou beneficente sem Mercado Pago conectado?) then (sim)
+  :Bloquear a publicação e pedir a conexão;
+  stop
+else (não)
+endif
+if (Evento beneficente?) then (sim)
+  :Enviar para aprovação da Seeds;
+  if (Seeds aprovou?) then (não)
+    :Voltar para rascunho com o motivo;
+    stop
+  else (sim)
+  endif
+else (não)
+endif
+:Publicar o evento;
+:Gerar o link de divulgação;
+if (Salvar como modelo?) then (sim)
+  :Salvar o modelo;
+else (não)
+endif
+stop
+@enduml

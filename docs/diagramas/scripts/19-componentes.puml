@@ -1,0 +1,49 @@
+@startuml
+title Rooted – Componentes
+package "Front-end (React + Vite)" {
+  component "Telas e rotas" as Telas
+  component "Leitor de QR" as Leitor
+  component "Cliente da API" as Cliente
+}
+package "API (Spring Boot)" as ApiPkg {
+  interface "REST /api" as REST
+  component "auth" as Auth
+  component "organizacoes" as Orgs
+  component "eventos" as Eventos
+  component "pedidos" as Pedidos
+  component "inscricoes" as Inscricoes
+  component "checkin" as Checkin
+  component "admin" as Admin
+  component "notificacoes" as Notificacoes
+  component "jobs" as Jobs
+}
+database "MySQL" as DB
+cloud "Google" as Google
+cloud "Mercado Pago" as MP
+cloud "Cloudflare R2 ou AWS S3" as R2
+cloud "Resend" as Resend
+
+Telas --> Cliente
+Leitor --> Cliente
+Cliente --> REST : HTTPS + JWT
+REST --> Auth
+REST --> Orgs
+REST --> Eventos
+REST --> Pedidos
+REST --> Inscricoes
+REST --> Checkin
+REST --> Admin
+Pedidos --> Eventos : vagas
+Pedidos --> Inscricoes : cria a inscrição
+Checkin --> Inscricoes
+Inscricoes --> Notificacoes
+Jobs --> Pedidos : libera reservas
+Jobs --> Orgs : renova tokens
+Jobs --> Notificacoes : lembretes
+Auth --> Google : OAuth2
+Orgs --> MP : OAuth
+Pedidos --> MP : pagamentos e reembolsos
+Eventos --> R2 : capas
+Notificacoes --> Resend : SMTP
+ApiPkg --> DB : Spring Data JPA
+@enduml

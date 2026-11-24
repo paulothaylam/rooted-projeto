@@ -1,0 +1,26 @@
+CREATE TABLE IF NOT EXISTS teste_conexao (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    mensagem VARCHAR(255) NOT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO teste_conexao (mensagem)
+VALUES ('PHP + Docker + MySQL: conexao funcionando!');
+
+CREATE TABLE IF NOT EXISTS perfis (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    email VARCHAR(180) NOT NULL UNIQUE,
+    cpf VARCHAR(14) NOT NULL UNIQUE,
+    telefone VARCHAR(30) NOT NULL,
+    senha_hash VARCHAR(255) NOT NULL,
+    nivel_conta VARCHAR(20) NOT NULL DEFAULT 'bronze',
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS organizacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    situacao VARCHAR(20) NOT NULL DEFAULT 'APROVADA'
+);
+

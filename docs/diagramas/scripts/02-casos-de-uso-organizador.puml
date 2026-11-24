@@ -1,0 +1,48 @@
+@startuml
+title Rooted – Casos de uso: organizador
+left to right direction
+
+actor "Participante" as Participante
+actor "Organizador" as Organizador
+actor "Tarefas agendadas" as Tarefas <<sistema>>
+actor "Mercado Pago" as MP <<sistema externo>>
+
+Participante <|-- Organizador
+
+rectangle "Rooted" {
+  usecase "Pedir cadastro de organização" as UC30
+  usecase "Conectar a conta do Mercado Pago" as UC31
+  usecase "Renovar os tokens do Mercado Pago" as UC32
+  usecase "Convidar a equipe" as UC33
+  usecase "Criar evento" as UC34
+  usecase "Definir ingressos e pagamento" as UC35
+  usecase "Escolher a política de reembolso" as UC36
+  usecase "Criar a partir de um modelo" as UC37
+  usecase "Salvar evento como modelo" as UC38
+  usecase "Publicar evento" as UC39
+  usecase "Enviar evento beneficente para aprovação" as UC40
+  usecase "Ver inscritos e exportar planilha" as UC41
+  usecase "Ver vendas e reembolsos" as UC42
+  usecase "Cancelar evento" as UC43
+  usecase "Reembolsar todos os inscritos" as UC44
+}
+
+Participante -- UC30
+Organizador -- UC31
+Organizador -- UC33
+Organizador -- UC34
+Organizador -- UC38
+Organizador -- UC39
+Organizador -- UC41
+Organizador -- UC42
+Organizador -- UC43
+Tarefas -- UC32
+UC34 ..> UC35 : <<include>>
+UC34 ..> UC36 : <<include>>
+UC34 <.. UC37 : <<extend>>
+UC39 <.. UC40 : <<extend>>
+UC43 ..> UC44 : <<include>>
+UC31 -- MP
+UC32 -- MP
+UC44 -- MP
+@enduml

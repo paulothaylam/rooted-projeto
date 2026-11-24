@@ -1,0 +1,15 @@
+@startuml
+title Rooted – Estados da inscrição
+[*] --> ATIVA : pagamento aprovado ou inscrição gratuita
+state ATIVA {
+  [*] --> AGUARDANDO_ENTRADA
+  AGUARDANDO_ENTRADA --> ENTRADA_REGISTRADA : check-in pelo QR ou busca manual
+}
+ATIVA --> CANCELADA : cancelamento pelo participante ou evento cancelado
+ATIVA --> TRANSFERIDA : novo titular aceita [mais de 24 horas antes do evento]
+CANCELADA : entry / libera a vaga
+TRANSFERIDA : entry / cria a inscrição do novo titular
+CANCELADA --> [*]
+TRANSFERIDA --> [*]
+ATIVA --> [*] : evento encerrado
+@enduml

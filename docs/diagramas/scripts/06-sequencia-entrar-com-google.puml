@@ -1,0 +1,36 @@
+@startuml
+title Rooted – Sequência: entrar com Google
+actor "Participante" as Pessoa
+boundary "React" as React
+control "API (Spring Boot)" as API
+participant "Google" as Google
+database "MySQL" as DB
+
+Pessoa -> React : clica em "Entrar com Google"
+React -> Google : pede autorização (OAuth2)
+Google -> Pessoa : tela de login e consentimento
+Pessoa -> Google : confirma a conta
+Google --> React : código de autorização
+React -> API : POST /api/auth/google { código }
+activate API
+API -> Google : troca o código pelo token de identidade
+Google --> API : nome, e-mail e google_id
+API -> DB : busca o perfil pelo google_id ou pelo e-mail
+alt primeiro acesso
+  API -> DB : cria o perfil com um codigo_qr aleatório
+end
+API --> React : token JWT e dados do perfil
+deactivate API
+React -> React : guarda o token
+alt perfil sem CPF
+  React -> Pessoa : pede nome completo, CPF e telefone
+  Pessoa -> React : preenche e aceita os Termos
+  React -> API : PUT /api/me { nome, cpf, telefone, aceites }
+  activate API
+  API -> DB : confere se o CPF é válido e ainda não existe
+  API -> DB : grava o perfil e o aceite (versão, data e IP)
+  API --> React : perfil completo
+  deactivate API
+end
+React -> Pessoa : mostra a vitrine já logado
+@enduml

@@ -1,0 +1,64 @@
+@startuml
+title Rooted – Casos de uso: público e participante
+left to right direction
+
+actor "Visitante" as Visitante
+actor "Participante" as Participante
+actor "Google" as Google <<sistema externo>>
+actor "Mercado Pago" as MP <<sistema externo>>
+actor "Tarefas agendadas" as Tarefas <<sistema>>
+
+Visitante <|-- Participante
+
+rectangle "Rooted" {
+  usecase "Ver a vitrine de eventos" as UC01
+  usecase "Ver a página do evento" as UC02
+  usecase "Criar conta" as UC03
+  usecase "Entrar com Google" as UC04
+  usecase "Entrar com e-mail e senha" as UC05
+  usecase "Recuperar a senha" as UC06
+  usecase "Aceitar os Termos e a Política" as UC07
+  usecase "Completar o perfil" as UC08
+  usecase "Comprar ingresso" as UC09
+  usecase "Reservar a vaga" as UC10
+  usecase "Pagar no Checkout Pro" as UC11
+  usecase "Confirmar o pagamento" as UC12
+  usecase "Enviar e-mail com QR Code" as UC13
+  usecase "Inscrever-se em evento gratuito" as UC14
+  usecase "Ver meus eventos e o QR Code" as UC15
+  usecase "Cancelar a inscrição" as UC16
+  usecase "Reembolsar o pagamento" as UC17
+  usecase "Transferir o ingresso" as UC18
+  usecase "Editar o perfil ou excluir a conta" as UC19
+  usecase "Liberar reservas vencidas" as UC20
+  usecase "Enviar lembrete do evento" as UC21
+}
+
+Visitante -- UC01
+Visitante -- UC02
+Visitante -- UC03
+Visitante -- UC04
+Visitante -- UC05
+Visitante -- UC06
+UC04 -- Google
+UC03 ..> UC07 : <<include>>
+UC03 ..> UC08 : <<include>>
+
+Participante -- UC09
+Participante -- UC14
+Participante -- UC15
+Participante -- UC16
+Participante -- UC18
+Participante -- UC19
+UC09 ..> UC10 : <<include>>
+UC09 ..> UC11 : <<include>>
+UC11 -- MP
+UC12 -- MP
+UC12 ..> UC13 : <<include>>
+UC14 ..> UC13 : <<include>>
+UC16 <.. UC17 : <<extend>>
+UC17 -- MP
+
+Tarefas -- UC20
+Tarefas -- UC21
+@enduml

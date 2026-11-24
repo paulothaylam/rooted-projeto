@@ -1,0 +1,28 @@
+@startuml
+title Rooted – Sequência: check-in pelo QR Code
+actor "Equipe de credenciamento" as Equipe
+boundary "React (celular)" as React
+control "API (Spring Boot)" as API
+database "MySQL" as DB
+boundary "Outros celulares" as Outros
+
+Equipe -> React : aponta a câmera para o QR do participante
+React -> React : html5-qrcode lê o código
+React -> API : POST /api/checkin { eventoId, codigoQr }
+activate API
+API -> API : confere se a pessoa é da equipe do evento
+API -> DB : busca o perfil pelo codigo_qr e a inscrição no evento
+alt sem inscrição no evento
+  API --> React : aviso "sem ingresso neste evento"
+else inscrição cancelada ou transferida
+  API --> React : aviso "inscrição cancelada"
+else entrada já registrada
+  API --> React : aviso "entrada já registrada", com o horário
+else inscrição ativa
+  API -> DB : INSERT em checkins (inscricao_id é único)
+  API --> React : nome, parte do CPF e tipo de ingresso
+  API -> Outros : presença atualizada (WebSocket ou SSE)
+end
+deactivate API
+React -> Equipe : mostra o resultado da leitura
+@enduml

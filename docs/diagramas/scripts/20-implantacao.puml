@@ -1,0 +1,29 @@
+@startuml
+title Rooted – Implantação
+node "Celular ou computador" as Aparelho {
+  artifact "Navegador" as Navegador
+}
+node "Vercel ou Netlify" as Vercel {
+  artifact "Front-end React (site estático)" as Front
+}
+node "Railway, Render ou VM" as Servidor {
+  artifact "API Spring Boot (.jar, Java 21)" as Api
+}
+database "MySQL 8 (Aiven ou da hospedagem)" as DB
+cloud "Mercado Pago" as MP
+cloud "Google" as Google
+cloud "Cloudflare R2 ou AWS S3" as R2
+cloud "Resend" as Resend
+cloud "Sentry" as Sentry
+
+Navegador --> Front : HTTPS (baixa o site)
+Navegador --> Api : HTTPS, JSON e JWT
+Navegador --> MP : Checkout Pro
+Api --> DB : JDBC com TLS
+Api <--> MP : SDK Java e avisos de pagamento
+Api --> Google : login OAuth2
+Api --> R2 : arquivos
+Api --> Resend : e-mails (SMTP)
+Api --> Sentry : erros
+Front --> Sentry : erros
+@enduml

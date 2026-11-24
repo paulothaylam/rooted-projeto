@@ -1,0 +1,20 @@
+@startuml
+title Rooted – Estados do pedido
+[*] --> RESERVADO : comprador clica em comprar
+RESERVADO : entry / vagas_ocupadas + 1
+RESERVADO --> PENDENTE : aviso de Pix ou boleto gerado
+RESERVADO --> APROVADO : aviso de pagamento aprovado
+RESERVADO --> RECUSADO : aviso de pagamento recusado
+RESERVADO --> EXPIRADO : reserva venceu (15 minutos)
+PENDENTE --> APROVADO : aviso de pagamento aprovado
+PENDENTE --> EXPIRADO : venceu sem pagamento
+APROVADO : entry / cria a inscrição ativa
+APROVADO --> REEMBOLSADO : reembolso concluído
+RECUSADO : entry / libera a vaga
+EXPIRADO : entry / libera a vaga
+REEMBOLSADO : entry / libera a vaga
+RECUSADO --> [*]
+EXPIRADO --> [*]
+REEMBOLSADO --> [*]
+APROVADO --> [*] : evento encerrado
+@enduml

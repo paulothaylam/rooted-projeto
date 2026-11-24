@@ -1,0 +1,49 @@
+@startuml
+title Rooted – Sequência: compra de ingresso pelo Checkout Pro
+actor "Participante" as Pessoa
+boundary "React" as React
+control "API (Spring Boot)" as API
+database "MySQL" as DB
+participant "Mercado Pago" as MP
+participant "Resend (e-mail)" as Email
+
+Pessoa -> React : clica em "Comprar"
+React -> API : POST /api/pedidos { tipoIngressoId }
+activate API
+API -> DB : SELECT ... FOR UPDATE no tipo de ingresso
+alt sem vaga ou venda fechada
+  API --> React : 409 ingresso esgotado
+else há vaga
+  API -> DB : vagas_ocupadas + 1, pedido RESERVADO e reserva de 15 minutos
+  API -> API : calcula a taxa da Seeds (3% ou a mínima; zero no beneficente)
+  API -> MP : cria a preferência com o token do organizador
+  MP --> API : id da preferência e link de pagamento
+  API -> DB : grava mp_preference_id
+  API --> React : 201 { pedidoId, situacao, linkPagamento }
+end
+deactivate API
+
+React -> MP : leva o comprador ao Checkout Pro
+Pessoa -> MP : paga com cartão, Pix ou boleto
+MP --> React : volta para a tela de retorno
+React -> API : GET /api/pedidos/{id}
+API --> React : situação atual (aprovado ou "em análise")
+
+MP -> API : POST /api/webhooks/mercadopago
+activate API
+API -> API : valida a assinatura secreta
+API -> DB : grava o aviso (o código do aviso é único)
+API --> MP : 200 OK
+API -> MP : GET /v1/payments/{id}
+MP --> API : situação e external_reference
+alt aprovado
+  API -> DB : pedido APROVADO, reserva CONVERTIDA, inscrição ATIVA
+  API -> Email : confirmação com QR Code e arquivo .ics
+  Email -> Pessoa : e-mail de confirmação
+else pendente (Pix ou boleto)
+  API -> DB : pedido PENDENTE, reserva até o vencimento
+else recusado ou vencido
+  API -> DB : pedido RECUSADO ou EXPIRADO, reserva LIBERADA, vagas_ocupadas - 1
+end
+deactivate API
+@enduml

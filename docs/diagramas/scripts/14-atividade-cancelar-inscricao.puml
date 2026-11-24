@@ -1,0 +1,42 @@
+@startuml
+title Rooted – Atividade: cancelar inscrição
+start
+:Participante pede o cancelamento;
+if (Evento gratuito?) then (sim)
+  :Valor do reembolso = zero;
+else (não)
+  if (Até 7 dias após a compra?) then (sim)
+    :Valor = total pago;
+  else (não)
+    if (Política é só transferência?) then (sim)
+      :Valor = zero;
+    else (não)
+      if (Antes da data limite da política?) then (sim)
+        if (Política parcial?) then (sim)
+          :Valor = percentual definido pelo organizador;
+        else (não)
+          :Valor = total pago;
+        endif
+      else (não)
+        :Valor = zero;
+      endif
+    endif
+  endif
+endif
+if (Valor maior que zero?) then (sim)
+  :Pedir o reembolso ao Mercado Pago;
+  if (Reembolso aceito?) then (sim)
+    :Devolver a taxa da Seeds na mesma proporção;
+    :Marcar o pedido como reembolsado;
+  else (não, sem saldo)
+    :Registrar o reembolso com falha;
+    :Avisar participante, organizador e Seeds;
+    stop
+  endif
+else (não)
+endif
+:Cancelar a inscrição;
+:Liberar a vaga;
+:Enviar e-mail de confirmação;
+stop
+@enduml

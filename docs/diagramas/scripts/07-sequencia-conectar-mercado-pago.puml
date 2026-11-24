@@ -1,0 +1,35 @@
+@startuml
+title Rooted – Sequência: conectar a conta do Mercado Pago (OAuth com PKCE)
+actor "Organizador" as Org
+boundary "React" as React
+control "API (Spring Boot)" as API
+database "MySQL" as DB
+participant "Mercado Pago" as MP
+control "Tarefa agendada" as Job
+
+Org -> React : clica em "Conectar Mercado Pago"
+React -> API : GET /api/organizacoes/{id}/mercadopago/conectar
+activate API
+API -> API : confere se é administrador da organização
+API -> API : gera o state e o code_verifier (PKCE)
+API -> DB : grava em estados_oauth_mp (vence em 10 minutos)
+API --> React : link de autorização com state e code_challenge
+deactivate API
+React -> MP : abre a página de autorização
+Org -> MP : autoriza a Rooted
+MP -> API : volta na URL de retorno com code e state
+activate API
+API -> DB : confere o state (existe, não venceu, não foi usado)
+API -> MP : POST /oauth/token (code e code_verifier)
+MP --> API : access_token, refresh_token, user_id e public_key
+API -> DB : grava contas_mercado_pago com os tokens criptografados
+API --> React : leva o organizador para "conta conectada"
+deactivate API
+
+opt token perto de vencer (todo dia)
+  Job -> DB : busca as contas que vencem em breve
+  Job -> MP : POST /oauth/token (refresh_token)
+  MP --> Job : novos tokens
+  Job -> DB : atualiza os tokens e a data de vencimento
+end
+@enduml
