@@ -1,0 +1,64 @@
+@startuml
+title Rooted – Sequência: Criar e Publicar Evento (Organizador)
+actor "Organizador" as User
+participant "index.php" as Index
+participant "HomeController" as HC
+participant "Evento" as Evento
+participant "Database" as DB
+
+== Painel do Organizador ==
+User -> Index: GET /?pagina=painel-organizador
+Index -> HC: mostrar("painel-organizador")
+HC -> DB: conectar()
+DB --> HC: PDO
+HC -> Evento: new Evento(PDO)
+HC -> Evento: garantirTabelas()
+HC -> Evento: cadastrarExemplos()
+HC -> Evento: listarTodosParaOrganizador()
+Evento -> DB: SELECT e.*, o.nome AS organizacao, COALESCE(SUM(ti.vagas),0) AS vagas FROM eventos e INNER JOIN organizacoes o ... LEFT JOIN tipos_ingresso ti ... GROUP BY e.id ORDER BY e.criado_em DESC
+DB --> Evento: rows
+HC --> User: Lista eventos (RASCUNHO, PUBLICADO, EM_APROVACAO)
+
+== Criar Evento (Rascunho) ==
+User -> Index: GET /?pagina=criar-evento
+Index -> HC: mostrar("criar-evento")
+HC --> User: Formulário (nome, descrição, tipo, data, local, vagas, política reembolso)
+
+User -> Index: POST /?pagina=criar-evento (dados do evento)
+Index -> HC: mostrar("criar-evento")
+HC -> DB: conectar()
+DB --> HC: PDO
+HC -> DB: BEGIN TRANSACTION
+HC -> DB: INSERT INTO organizacoes (nome) VALUES ('Organização de ' + usuarioNome)
+DB --> HC: organizacaoId (lastInsertId)
+HC -> DB: INSERT INTO eventos (organizacao_id, nome, descricao, tipo, situacao='RASCUNHO', data_inicio, local_nome) VALUES (...)
+DB --> HC: eventoId (lastInsertId)
+HC -> DB: INSERT INTO tipos_ingresso (evento_id, nome, preco, vagas) VALUES (...)
+note right: GRATUITO/BENEFICENTE: preco=0, nome='Entrada gratuita'/'Contribuição solidária'\nPAGO: preco=50, nome='Ingresso geral'
+DB --> HC: tipoIngressoId
+HC -> DB: COMMIT
+HC --> User: "Evento criado e salvo como rascunho."
+
+== Publicar Evento ==
+User -> Index: POST /?pagina=publicar-evento (evento_id)
+Index -> HC: mostrar("publicar-evento")
+HC -> DB: conectar()
+DB --> HC: PDO
+HC -> Evento: new Evento(PDO)
+HC -> Evento: garantirTabelas()
+HC -> Evento: publicar(eventoId)
+Evento -> DB: SELECT id, tipo, situacao FROM eventos WHERE id = ?
+DB --> Evento: row
+alt situacao = 'PUBLICADO'
+    HC --> User: "Este evento já está publicado."
+else tipo = 'PAGO'
+    HC --> User: "Evento pago bloqueado: conecte o Mercado Pago antes da publicação."
+else tipo = 'BENEFICENTE'
+    Evento -> DB: UPDATE eventos SET situacao = 'EM_APROVACAO' WHERE id = ?
+    HC --> User: "Evento beneficente enviado para aprovação da Seeds."
+else tipo = 'GRATUITO'
+    Evento -> DB: UPDATE eventos SET situacao = 'PUBLICADO' WHERE id = ?
+    HC --> User: "Evento gratuito publicado na vitrine."
+end
+
+@enduml

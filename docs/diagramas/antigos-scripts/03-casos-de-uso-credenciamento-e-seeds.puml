@@ -1,0 +1,33 @@
+@startuml
+title Rooted – Casos de uso: credenciamento e Seeds
+left to right direction
+
+actor "Participante" as Participante
+actor "Equipe de credenciamento" as Equipe
+actor "Organizador" as Organizador
+actor "Administrador da Seeds" as Admin
+
+Participante <|-- Equipe
+Equipe <|-- Organizador
+Participante <|-- Admin
+
+rectangle "Rooted" {
+  usecase "Fazer check-in pelo QR Code" as UC45
+  usecase "Buscar inscrito por nome ou CPF" as UC46
+  usecase "Ver presença em tempo real" as UC47
+  usecase "Aprovar ou recusar organização" as UC48
+  usecase "Aprovar evento beneficente" as UC49
+  usecase "Bloquear organizador" as UC50
+  usecase "Acompanhar vendas e taxas" as UC51
+  usecase "Acompanhar reembolsos com falha" as UC52
+}
+
+Equipe -- UC45
+Equipe -- UC47
+UC45 <.. UC46 : <<extend>>
+Admin -- UC48
+Admin -- UC49
+Admin -- UC50
+Admin -- UC51
+Admin -- UC52
+@enduml

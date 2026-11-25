@@ -1,0 +1,40 @@
+@startuml
+title Rooted – Atividade: Editar Perfil e Excluir Conta
+start
+
+fork
+    :Editar Perfil;
+    :GET /editar-perfil;
+    :Carrega dados atuais (Perfil::buscarPorId);
+    :Preenche: nome, email, CPF, telefone;
+    :POST /editar-perfil;
+    :Valida: campos obrigatórios, email válido;
+    :Verifica email único (exceto próprio);
+    :Verifica CPF único (exceto próprio);
+    if (email/CPF livres?) then (sim)
+        :Perfil::atualizar(id, dados);
+        :UPDATE perfis SET nome, email, cpf, telefone;
+        :Atualiza $_SESSION[nome, email];
+        :Exibe "Perfil atualizado.";
+    else (em uso)
+        :Exibe "E-mail/CPF já em uso.";
+    endif
+fork again
+    :Excluir Conta;
+    :POST /excluir-conta;
+    :SELECT COUNT(*) FROM inscricoes WHERE perfil_id=?;
+    if (tem inscrições?) then (sim)
+        :Exibe "Não é possível excluir com inscrições.";
+    else (não tem)
+        :BEGIN TRANSACTION;
+        :DELETE FROM reservas WHERE perfil_id=?;
+        :DELETE FROM perfis WHERE id=?;
+        :COMMIT;
+        :session_destroy();
+        :Redirect /login?conta=excluida;
+    endif
+end fork
+
+stop
+
+@enduml

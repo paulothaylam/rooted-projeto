@@ -4,61 +4,56 @@ left to right direction
 
 actor "Visitante" as Visitante
 actor "Participante" as Participante
-actor "Google" as Google <<sistema externo>>
-actor "Mercado Pago" as MP <<sistema externo>>
-actor "Tarefas agendadas" as Tarefas <<sistema>>
 
 Visitante <|-- Participante
 
 rectangle "Rooted" {
-  usecase "Ver a vitrine de eventos" as UC01
-  usecase "Ver a página do evento" as UC02
-  usecase "Criar conta" as UC03
-  usecase "Entrar com Google" as UC04
-  usecase "Entrar com e-mail e senha" as UC05
-  usecase "Recuperar a senha" as UC06
-  usecase "Aceitar os Termos e a Política" as UC07
-  usecase "Completar o perfil" as UC08
-  usecase "Comprar ingresso" as UC09
-  usecase "Reservar a vaga" as UC10
-  usecase "Pagar no Checkout Pro" as UC11
-  usecase "Confirmar o pagamento" as UC12
-  usecase "Enviar e-mail com QR Code" as UC13
-  usecase "Inscrever-se em evento gratuito" as UC14
-  usecase "Ver meus eventos e o QR Code" as UC15
-  usecase "Cancelar a inscrição" as UC16
-  usecase "Reembolsar o pagamento" as UC17
-  usecase "Transferir o ingresso" as UC18
-  usecase "Editar o perfil ou excluir a conta" as UC19
-  usecase "Liberar reservas vencidas" as UC20
-  usecase "Enviar lembrete do evento" as UC21
+  usecase "Ver vitrine de eventos\n(busca e filtros)" as UC01
+  usecase "Ver detalhes do evento" as UC02
+  usecase "Criar conta\n(nome, e-mail, CPF, telefone, senha)" as UC03
+  usecase "Entrar com e-mail e senha" as UC04
+  usecase "Ver painel do participante" as UC05
+  usecase "Inscrever-se em evento gratuito" as UC06
+  usecase "Reservar vaga em evento pago\n(15 min, sem cobrança)" as UC07
+  usecase "Editar perfil\n(nome, e-mail, CPF, telefone)" as UC08
+  usecase "Cancelar inscrição\n(devolve vaga)" as UC09
+  usecase "Excluir conta\n(sem inscrições ativas)" as UC10
+  usecase "Sair (logout)" as UC11
 }
 
 Visitante -- UC01
 Visitante -- UC02
 Visitante -- UC03
 Visitante -- UC04
-Visitante -- UC05
-Visitante -- UC06
-UC04 -- Google
-UC03 ..> UC07 : <<include>>
-UC03 ..> UC08 : <<include>>
 
+Participante -- UC05
+Participante -- UC06
+Participante -- UC07
+Participante -- UC08
 Participante -- UC09
-Participante -- UC14
-Participante -- UC15
-Participante -- UC16
-Participante -- UC18
-Participante -- UC19
-UC09 ..> UC10 : <<include>>
-UC09 ..> UC11 : <<include>>
-UC11 -- MP
-UC12 -- MP
-UC12 ..> UC13 : <<include>>
-UC14 ..> UC13 : <<include>>
-UC16 <.. UC17 : <<extend>>
-UC17 -- MP
+Participante -- UC10
+Participante -- UC11
 
-Tarefas -- UC20
-Tarefas -- UC21
+UC03 ..> UC04 : <<include>>
+UC06 ..> UC02 : <<include>>
+UC07 ..> UC02 : <<include>>
+
+note right of UC07
+  Evento pago: cria reserva com
+  vence_em = now() + 15 min.
+  Não há processamento de pagamento.
+  Não há rotina de expiração automática.
+end note
+
+note right of UC09
+  Cancelamento muda situação
+  de ATIVA para CANCELADA
+  e incrementa vagas do tipo_ingresso.
+end note
+
+note right of UC10
+  Só permitido se COUNT(inscricoes) = 0.
+  Remove reservas e perfil.
+end note
+
 @enduml

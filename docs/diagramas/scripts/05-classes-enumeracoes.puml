@@ -1,121 +1,159 @@
 @startuml
-title Rooted – Enumerações (valores permitidos)
+title Rooted – Diagrama de objetos (exemplos de dados)
 
-enum PapelGlobal {
-  PARTICIPANTE
-  ADMIN_SEEDS
+object Org1 {
+  id = 1
+  nome = "Oxygeni Hub"
+  situacao = "APROVADA"
 }
-enum NivelConta {
-  NENHUM
-  BRONZE
-  PRATA
-  OURO
+
+object Org2 {
+  id = 2
+  nome = "Seeds Tecnologia"
+  situacao = "APROVADA"
 }
-enum DocumentoTermos {
-  TERMOS_PARTICIPANTE
-  TERMOS_ORGANIZADOR
-  PRIVACIDADE
+
+object Org3 {
+  id = 3
+  nome = "Ceuma Universidade"
+  situacao = "APROVADA"
 }
-enum SituacaoOrganizacao {
-  PENDENTE
-  APROVADA
-  RECUSADA
-  BLOQUEADA
+
+object Ev1 {
+  id = 1
+  organizacaoId = 1
+  nome = "Conecta Innovation"
+  descricao = "Um encontro para conhecer projetos, empreendedores e oportunidades no ecossistema de inovação."
+  tipo = "GRATUITO"
+  situacao = "PUBLICADO"
+  dataInicio = "2026-12-12 19:00:00"
+  localNome = "Oxygeni Hub - São Luís"
+  organizacao = "Oxygeni Hub"
 }
-enum PapelOrganizacao {
-  ADMINISTRADOR
-  CREDENCIAMENTO
+
+object Ev2 {
+  id = 2
+  organizacaoId = 2
+  nome = "Rooted Experience"
+  descricao = "Experiência prática sobre tecnologia, networking e construção de comunidades."
+  tipo = "PAGO"
+  situacao = "RASCUNHO"
+  dataInicio = "2027-01-24 09:00:00"
+  localNome = "Centro de Convenções"
+  organizacao = "Seeds Tecnologia"
 }
-enum SituacaoContaMp {
-  CONECTADA
-  DESCONECTADA
-  ERRO
+
+object Ev3 {
+  id = 3
+  organizacaoId = 3
+  nome = "Futuro Digital"
+  descricao = "Palestras e oficinas sobre carreira, inovação e as tecnologias que transformam o mercado."
+  tipo = "BENEFICENTE"
+  situacao = "EM_APROVACAO"
+  dataInicio = "2027-02-08 14:00:00"
+  localNome = "Universidade Ceuma"
+  organizacao = "Ceuma Universidade"
 }
-enum TipoEvento {
-  PAGO
-  GRATUITO
-  BENEFICENTE
+
+object Perfil1 {
+  id = 1
+  nome = "João Silva"
+  email = "joao@email.com"
+  cpf = "123.456.789-00"
+  telefone = "(98) 99999-9999"
+  senhaHash = "$2y$10$... (bcrypt)"
+  nivelConta = "bronze"
+  criadoEm = "2026-11-20 10:00:00"
 }
-enum SituacaoEvento {
-  RASCUNHO
-  EM_APROVACAO
-  PUBLICADO
-  CANCELADO
-  ENCERRADO
+
+object TI1 {
+  id = 1
+  eventoId = 1
+  nome = "Entrada gratuita"
+  preco = 0.00
+  vagas = 95
 }
-enum PagadorTaxas {
-  ORGANIZADOR
-  PARTICIPANTE
+
+object TI2 {
+  id = 2
+  eventoId = 2
+  nome = "Ingresso geral"
+  preco = 50.00
+  vagas = 100
 }
-enum PoliticaReembolso {
-  INTEGRAL_ATE_DATA
-  PARCIAL_ATE_DATA
-  SO_TRANSFERENCIA
+
+object TI3 {
+  id = 3
+  eventoId = 3
+  nome = "Contribuição solidária"
+  preco = 0.00
+  vagas = 80
 }
-enum DecisaoAprovacao {
-  APROVADA
-  RECUSADA
-  BLOQUEADA
-  DESBLOQUEADA
+
+object Inscr1 {
+  id = 1
+  perfilId = 1
+  eventoId = 1
+  tipoIngressoId = 1
+  situacao = "ATIVA"
+  criadoEm = "2026-11-22 14:30:00"
 }
-enum TipoLocal {
-  PRESENCIAL
-  ONLINE
+
+object Res1 {
+  id = 1
+  perfilId = 1
+  eventoId = 2
+  tipoIngressoId = 2
+  situacao = "ATIVA"
+  venceEm = "2026-11-22 14:45:00"
+  criadoEm = "2026-11-22 14:30:00"
 }
-enum PublicoIngresso {
-  GERAL
-  ESTUDANTE
-  PROFISSIONAL
-  CONVIDADO
+
+object Chk1 {
+  id = 1
+  inscricaoId = 1
+  realizadoPor = 1
+  criadoEm = "2026-12-12 18:45:00"
 }
-enum SituacaoPedido {
-  RESERVADO
-  PENDENTE
-  APROVADO
-  RECUSADO
-  EXPIRADO
-  REEMBOLSADO
-}
-enum FormaPagamento {
-  CARTAO
-  PIX
-  BOLETO
-}
-enum SituacaoReserva {
-  ATIVA
-  CONVERTIDA
-  LIBERADA
-}
-enum SituacaoInscricao {
-  ATIVA
-  CANCELADA
-  TRANSFERIDA
-}
-enum SituacaoTransferencia {
-  PENDENTE
-  ACEITA
-  CANCELADA
-  EXPIRADA
-}
-enum MotivoReembolso {
-  ATE_7_DIAS
-  POLITICA_EVENTO
-  EVENTO_CANCELADO
-  ADMIN
-}
-enum SituacaoReembolso {
-  SOLICITADO
-  CONCLUIDO
-  FALHOU
-}
-enum MetodoCheckin {
-  QR
-  MANUAL
-}
-enum SituacaoAviso {
-  RECEBIDO
-  PROCESSADO
-  IGNORADO
-  ERRO
-}
+
+Org1 *-- Ev1
+Org2 *-- Ev2
+Org3 *-- Ev3
+
+Ev1 *-- TI1
+Ev2 *-- TI2
+Ev3 *-- TI3
+
+Perfil1 -- Inscr1
+Perfil1 -- Res1
+TI1 -- Inscr1
+TI2 -- Res1
+Ev1 -- Inscr1
+Ev2 -- Res1
+
+Inscr1 -- Chk1
+
+note bottom of Ev2
+  Evento PAGO fica em RASCUNHO.
+  Publicação bloqueada no código:
+  "conecte o Mercado Pago antes da publicação."
+end note
+
+note bottom of Ev3
+  Evento BENEFICENTE vai para EM_APROVACAO
+  ao tentar publicar. Aprovação não implementada.
+end note
+
+note bottom of Res1
+  Reserva de evento pago: vence_em = now() + 15 min.
+  Não vira inscrição automática (sem pagamento).
+  Não há rotina que expire reservas.
+end note
+
+note bottom of Chk1
+  Check-in é registro separado em tabela checkins.
+  NÃO altera situação da inscrição (continua ATIVA).
+  CPF mascarado na exibição: 123.***.***-00
+end note
+
 @enduml

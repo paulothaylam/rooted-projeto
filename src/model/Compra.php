@@ -4,6 +4,15 @@ declare(strict_types=1);
 
 final class Compra
 {
+    private ?int $perfilId = null;
+    private ?int $eventoId = null;
+    private ?int $tipoIngressoId = null;
+    private ?int $vagas = null;
+    private string $situacaoReserva = 'ATIVA';
+    private ?string $venceEm = null;
+    private ?int $inscricaoId = null;
+    private string $situacaoInscricao = 'ATIVA';
+
     public function __construct(private PDO $pdo)
     {
     }
@@ -92,6 +101,12 @@ final class Compra
         $this->pdo->beginTransaction();
 
         try {
+            $this->perfilId = $perfilId;
+            $this->eventoId = $eventoId;
+            $this->tipoIngressoId = $tipoIngressoId;
+            $this->situacaoReserva = 'ATIVA';
+            $this->situacaoInscricao = $gratuito ? 'ATIVA' : 'ATIVA';
+
             $statement = $this->pdo->prepare("
                 SELECT vagas FROM tipos_ingresso
                 WHERE id = :id AND evento_id = :evento_id
@@ -105,7 +120,10 @@ final class Compra
                 return 'Não há vagas disponíveis.';
             }
 
+            $this->vagas = (int) $tipo['vagas'] - 1;
+
             $venceEm = (new DateTime('+15 minutes'))->format('Y-m-d H:i:s');
+            $this->venceEm = $venceEm;
             $insertReserva = $this->pdo->prepare("
                 INSERT INTO reservas (perfil_id, evento_id, tipo_ingresso_id, situacao, vence_em)
                 VALUES (:perfil_id, :evento_id, :tipo_ingresso_id, 'ATIVA', :vence_em)
@@ -132,6 +150,7 @@ final class Compra
                     'evento_id' => $eventoId,
                     'tipo_ingresso_id' => $tipoIngressoId,
                 ]);
+                $this->inscricaoId = (int) $this->pdo->lastInsertId();
             }
 
             $this->pdo->commit();
@@ -157,6 +176,9 @@ final class Compra
         $this->pdo->beginTransaction();
 
         try {
+            $this->perfilId = $perfilId;
+            $this->inscricaoId = $inscricaoId;
+
             $statement = $this->pdo->prepare("
                 SELECT i.id, i.situacao, i.tipo_ingresso_id
                 FROM inscricoes i
@@ -175,6 +197,8 @@ final class Compra
                 return 'Inscrição não encontrada.';
             }
 
+            $this->tipoIngressoId = (int) $inscricao['tipo_ingresso_id'];
+
             if ($inscricao['situacao'] !== 'ATIVA') {
                 $this->pdo->rollBack();
                 return 'Esta inscrição já foi cancelada ou transferida.';
@@ -184,6 +208,7 @@ final class Compra
                 "UPDATE inscricoes SET situacao = 'CANCELADA' WHERE id = :id"
             );
             $cancelar->execute(['id' => $inscricaoId]);
+            $this->situacaoInscricao = 'CANCELADA';
 
             $devolverVaga = $this->pdo->prepare(
                 'UPDATE tipos_ingresso SET vagas = vagas + 1 WHERE id = :id'

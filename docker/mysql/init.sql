@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS perfis (
     cpf VARCHAR(14) NOT NULL UNIQUE,
     telefone VARCHAR(30) NOT NULL,
     senha_hash VARCHAR(255) NOT NULL,
+    tipo_perfil ENUM('participante', 'organizador', 'admin') NOT NULL DEFAULT 'participante',
     nivel_conta VARCHAR(20) NOT NULL DEFAULT 'bronze',
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

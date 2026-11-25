@@ -1,6 +1,18 @@
 <?php require __DIR__ . '/../layouts/head.php'; ?>
 
 <div class="dashboard-shell">
+    <nav class="area-topbar" aria-label="Alternar área">
+        <div class="container-fluid">
+            <div class="nav">
+                <a class="nav-link active" aria-current="page" href="?pagina=painel-participante">Participante</a>
+                <a class="nav-link" href="?pagina=painel-organizador">Organizador</a>
+                <?php if (($_SESSION['usuario_tipo'] ?? '') === 'admin'): ?>
+                    <a class="nav-link" href="?pagina=painel-seeds">Seeds</a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </nav>
+
     <div class="container-fluid">
         <div class="row">
             <aside class="col-lg-3 col-xl-2 dashboard-sidebar p-4">
@@ -18,11 +30,9 @@
                 </nav>
 
                 <div class="mt-4 pt-4 border-top border-white border-opacity-25">
-                    <p class="text-white-50 small mb-2">Alternar área</p>
-                    <a class="nav-link" href="?pagina=painel-organizador">Área do organizador</a>
-                    <a class="nav-link" href="?pagina=painel-seeds">Área da Seeds</a>
                     <a class="nav-link" href="?pagina=editar-perfil">Editar perfil e conta</a>
                     <a class="nav-link text-white-50" href="/">Voltar à página inicial</a>
+                    <a class="nav-link text-danger" href="/?pagina=logout">Sair da conta</a>
                 </div>
 
                 <div class="mt-5 pt-4 border-top border-white border-opacity-25">

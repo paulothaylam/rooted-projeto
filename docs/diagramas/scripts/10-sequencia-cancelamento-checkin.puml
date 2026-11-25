@@ -1,0 +1,80 @@
+@startuml
+title Rooted – Sequência: Cancelamento de Inscrição e Check-in
+actor "Participante" as User
+actor "Credenciador" as Cred
+participant "index.php" as Index
+participant "HomeController" as HC
+participant "Compra" as Compra
+participant "Evento" as Evento
+participant "Database" as DB
+
+== Cancelamento de Inscrição ==
+User -> Index: GET /?pagina=painel-participante
+Index -> HC: mostrar("painel-participante")
+HC -> DB: conectar()
+DB --> HC: PDO
+HC -> Compra: new Compra(PDO)
+HC -> Compra: garantirTabelas()
+HC -> DB: SELECT i.*, e.*, ti.nome AS ingresso_nome FROM inscricoes i INNER JOIN eventos e ... INNER JOIN tipos_ingresso ti ... WHERE i.perfil_id = ? ORDER BY e.data_inicio
+DB --> HC: rows (inscrições ATIVA)
+HC --> User: Lista inscrições com botão "Cancelar"
+
+User -> Index: POST /?pagina=cancelar-inscricao (inscricao_id)
+Index -> HC: mostrar("cancelar-inscricao")
+HC -> Compra: cancelarInscricao(perfilId, inscricaoId)
+Compra -> DB: BEGIN TRANSACTION
+Compra -> DB: SELECT i.id, i.situacao, i.tipo_ingresso_id FROM inscricoes i WHERE i.id = ? AND i.perfil_id = ? FOR UPDATE
+DB --> Compra: row
+alt não encontrada
+    Compra -> DB: ROLLBACK
+    HC --> User: "Inscrição não encontrada."
+else situacao != 'ATIVA'
+    Compra -> DB: ROLLBACK
+    HC --> User: "Esta inscrição já foi cancelada ou transferida."
+else ATIVA
+    Compra -> DB: UPDATE inscricoes SET situacao = 'CANCELADA' WHERE id = ?
+    Compra -> DB: UPDATE tipos_ingresso SET vagas = vagas + 1 WHERE id = ?
+    Compra -> DB: COMMIT
+    HC --> User: "Inscrição cancelada com sucesso. A vaga voltou a ficar disponível."
+end
+
+== Check-in (Credenciamento) ==
+Cred -> Index: GET /?pagina=credenciamento
+Index -> HC: mostrar("credenciamento")
+HC -> DB: conectar()
+DB --> HC: PDO
+HC -> Evento: new Evento(PDO)
+HC -> Evento: garantirTabelas()
+HC -> Evento: listar()
+Evento -> DB: SELECT * FROM eventos
+DB --> Evento: rows
+HC -> DB: CREATE TABLE IF NOT EXISTS checkins (id PK, inscricao_id UNIQUE, realizado_por, criado_em, FKs)
+HC --> User: Formulário (select evento, input nome/CPF)
+
+Cred -> Index: POST /?pagina=credenciamento (evento_id, participante=nome ou CPF)
+Index -> HC: mostrar("credenciamento")
+HC -> DB: SELECT i.id, i.situacao, p.nome, p.cpf, ti.nome AS ingresso_nome FROM inscricoes i INNER JOIN perfis p ON p.id = i.perfil_id INNER JOIN tipos_ingresso ti ON ti.id = i.tipo_ingresso_id WHERE i.evento_id = ? AND (p.nome LIKE ? OR p.cpf LIKE ?) LIMIT 1
+DB --> HC: row ou null
+alt não encontrada
+    HC --> Cred: "Nenhuma inscrição foi encontrada para os dados informados."
+else situacao != 'ATIVA'
+    HC --> Cred: "Esta inscrição não está ativa."
+else ATIVA
+    HC -> DB: SELECT criado_em FROM checkins WHERE inscricao_id = ?
+    DB --> HC: row ou null
+    alt já fez check-in
+        HC --> Cred: "Entrada já registrada em " + criado_em
+    else primeira vez
+        HC -> DB: INSERT INTO checkins (inscricao_id, realizado_por) VALUES (?, ?)
+        HC --> Cred: "Entrada registrada: " + nome + " · CPF mascarado · " + ingresso_nome
+    end
+end
+
+note right of Cred
+  Check-in NÃO altera situação da inscrição.
+  Inscrição permanece ATIVA.
+  Tabela checkins separada com UNIQUE(inscricao_id).
+  CPF exibido mascarado: 123.***.***-89
+end note
+
+@enduml

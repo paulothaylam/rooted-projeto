@@ -1,27 +1,42 @@
-# PHP com Docker e MySQL
+# Rooted
 
-Ambiente local com PHP 8.3 (FPM), Nginx e MySQL 8.4.
+Aplicação acadêmica de eventos construída em PHP, com MySQL e execução local em Docker.
+O código atual, e não propostas anteriores de arquitetura, é a fonte de verdade para
+funcionalidades e diagramas.
 
-O projeto é uma implementação acadêmica da plataforma **Rooted**, baseada no contexto em
-`docs/diagramas/contexto-uml-rooted.md`.
+## Escopo
 
-As decisões editáveis para futuras implementações estão em
-[docs/CONTEXTO-PROJETO.md](docs/CONTEXTO-PROJETO.md).
+O projeto está fechado para novas funcionalidades. Não serão adicionadas integrações
+externas de negócio ou autenticação: pagamentos, login social, envio de e-mail e serviços
+de armazenamento não fazem parte do sistema. O fluxo de eventos pagos permanece sem
+publicação e sem processamento de pagamento. O Bootstrap 5 carregado pela interface é
+um recurso visual, não uma integração funcional.
+
+O sistema oferece cadastro e login por e-mail e senha, navegação de eventos, reservas e
+inscrições gratuitas, gerenciamento básico de eventos, edição de perfil, cancelamento
+de inscrição e credenciamento manual. No cadastro, a pessoa escolhe participante ou
+organizador; a área Seeds é exclusiva da conta administrativa. Consulte
+[docs/CONTEXTO-PROJETO.md](docs/CONTEXTO-PROJETO.md)
+para limites e comportamentos detalhados.
 
 ## Executar
-
-No Workbench, crie uma nova conexão:
-
-- Host: 127.0.0.1
-- Porta: 3307
-- Usuário: rooted_app
-- Senha: rooted_password
 
 ```bash
 docker compose up -d --build
 ```
 
 Acesse http://localhost:8080.
+
+O banco deste ambiente já recebeu a coluna de tipo de conta e a conta administrativa foi
+promovida. Em uma cópia com banco antigo, aplique uma vez
+[`docker/mysql/migrations/2026-11-24-add-tipo-perfil.sql`](docker/mysql/migrations/2026-11-24-add-tipo-perfil.sql)
+antes de usar a versão atual.
+
+Para parar os containers:
+
+```bash
+docker compose down
+```
 
 ## Estrutura MVC
 
@@ -36,21 +51,9 @@ src/
 └── controller/
 ```
 
-## Comandos úteis
+## Diagramas UML
 
-```bash
-# Ver logs
-docker compose logs -f
-
-# Parar os containers
-docker compose down
-
-# Parar e remover também os dados do banco
-docker compose down -v
-
-# Entrar no PHP
-docker compose exec php bash
-
-# Entrar no MySQL
-docker compose exec db mysql -uapp -papp app
-```
+Os scripts PlantUML estão em [docs/diagramas/scripts/](docs/diagramas/scripts/). Há 21
+diagramas, limitados aos tipos solicitados: caso de uso, classe, objeto, pacote, sequência,
+comunicação, estado e atividade. O contexto de modelagem está em
+[docs/diagramas/contexto-uml-rooted.md](docs/diagramas/contexto-uml-rooted.md).

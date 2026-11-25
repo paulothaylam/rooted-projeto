@@ -1,217 +1,117 @@
 @startuml
 title Rooted – Diagrama de classes (domínio)
 hide empty methods
+hide circle
+
+class Database {
+  {static} +conectar(): PDO
+}
 
 class Perfil {
-  -nome: String
-  -email: String
-  -senhaHash: String
-  -googleId: String
-  -cpf: String
-  -telefone: String
-  -codigoQr: String
-  -papel: PapelGlobal
-  -nivel: NivelConta
-  -excluidoEm: LocalDateTime
-  -criadoEm: LocalDateTime
+  -id: int
+  -nome: string
+  -email: string
+  -cpf: string
+  -telefone: string
+  -senhaHash: string
+  -nivelConta: string
+  -criadoEm: string
+  +__construct(pdo: PDO)
+  +criar(dados: array): void
+  +buscarPorEmail(email: string): array|false
+  +emailExiste(email: string): bool
+  +cpfExiste(cpf: string): bool
+  +garantirTabela(): void
+  +buscarPorId(id: int): array|false
+  +atualizar(id: int, dados: array): void
 }
-class TokenRecuperacaoSenha {
-  -tokenHash: String
-  -expiraEm: LocalDateTime
-  -usadoEm: LocalDateTime
-  -criadoEm: LocalDateTime
-}
-class AceiteTermos {
-  -documento: DocumentoTermos
-  -versao: String
-  -ip: String
-  -criadoEm: LocalDateTime
-}
-class Organizacao {
-  -nome: String
-  -resumo: String
-  -redesSociais: String
-  -situacao: SituacaoOrganizacao
-  -criadoPor: Perfil
-  -criadoEm: LocalDateTime
-}
-class MembroOrganizacao {
-  -papel: PapelOrganizacao
-  -criadoEm: LocalDateTime
-}
-class ConviteEquipe {
-  -email: String
-  -papel: PapelOrganizacao
-  -tokenHash: String
-  -expiraEm: LocalDateTime
-  -aceitoEm: LocalDateTime
-  -criadoPor: Perfil
-  -criadoEm: LocalDateTime
-}
-class ContaMercadoPago {
-  -mpUserId: Long
-  -accessTokenCripto: String
-  -refreshTokenCripto: String
-  -publicKey: String
-  -expiraEm: LocalDateTime
-  -situacao: SituacaoContaMp
-  -criadoEm: LocalDateTime
-}
-class EstadoOauthMp {
-  -estado: String
-  -codeVerifier: String
-  -expiraEm: LocalDateTime
-  -usadoEm: LocalDateTime
-  -criadoPor: Perfil
-  -criadoEm: LocalDateTime
-}
-class ModeloEvento {
-  -nome: String
-  -dados: String
-  -criadoPor: Perfil
-  -criadoEm: LocalDateTime
-}
+
 class Evento {
-  -nome: String
-  -slug: String
-  -descricao: String
-  -programacao: String
-  -capaUrl: String
-  -tipo: TipoEvento
-  -situacao: SituacaoEvento
-  -inicio: LocalDateTime
-  -fim: LocalDateTime
-  -taxasPagasPor: PagadorTaxas
-  -politicaReembolso: PoliticaReembolso
-  -reembolsoAte: LocalDateTime
-  -reembolsoPercentual: BigDecimal
-  -publicadoEm: LocalDateTime
-  -canceladoEm: LocalDateTime
-  -criadoPor: Perfil
-  -criadoEm: LocalDateTime
+  -id: int
+  -organizacaoId: int
+  -nome: string
+  -descricao: string
+  -tipo: string
+  -situacao: string
+  -dataInicio: string
+  -localNome: string
+  -organizacao: string
+  -criadoEm: string
+  +__construct(pdo: PDO)
+  +garantirTabelas(): void
+  +cadastrarExemplos(): void
+  +listar(): array
+  +listarTodosParaOrganizador(): array
+  +publicar(id: int): array
+  +listarFiltrado(busca: string, tipo: string): array
+  +buscarPorId(id: int): array|false
 }
-class Aprovacao {
-  -decisao: DecisaoAprovacao
-  -motivo: String
-  -criadoPor: Perfil
-  -criadoEm: LocalDateTime
-}
-class LocalEvento {
-  -tipo: TipoLocal
-  -nome: String
-  -endereco: String
-  -cidade: String
-  -uf: String
-  -linkOnline: String
-  -ordem: int
-  -criadoEm: LocalDateTime
-}
-class TipoIngresso {
-  -nome: String
-  -publico: PublicoIngresso
-  -preco: BigDecimal
+
+class Compra {
+  -perfilId: int
+  -eventoId: int
+  -tipoIngressoId: int
   -vagas: int
-  -vagasOcupadas: int
-  -vendaInicio: LocalDateTime
-  -vendaFim: LocalDateTime
-  -aceitaCartao: boolean
-  -aceitaPix: boolean
-  -aceitaBoleto: boolean
-  -maxParcelas: int
-  -ativo: boolean
-  -criadoEm: LocalDateTime
-}
-class Pedido {
-  -codigo: String
-  -evento: Evento
-  -valorIngresso: BigDecimal
-  -taxaSeeds: BigDecimal
-  -valorTotal: BigDecimal
-  -situacao: SituacaoPedido
-  -formaPagamento: FormaPagamento
-  -parcelas: int
-  -mpPreferenceId: String
-  -mpPaymentId: Long
-  -pagoEm: LocalDateTime
-  -criadoEm: LocalDateTime
-}
-class Reserva {
-  -tipoIngresso: TipoIngresso
-  -situacao: SituacaoReserva
-  -expiraEm: LocalDateTime
-  -liberadaEm: LocalDateTime
-  -criadoEm: LocalDateTime
-}
-class Inscricao {
-  -evento: Evento
-  -origem: Inscricao
-  -situacao: SituacaoInscricao
-  -canceladaEm: LocalDateTime
-  -criadoEm: LocalDateTime
-}
-class Transferencia {
-  -emailDestino: String
-  -tokenHash: String
-  -situacao: SituacaoTransferencia
-  -expiraEm: LocalDateTime
-  -novaInscricao: Inscricao
-  -aceitaEm: LocalDateTime
-  -criadoEm: LocalDateTime
-}
-class Reembolso {
-  -valor: BigDecimal
-  -taxaSeedsDevolvida: BigDecimal
-  -motivo: MotivoReembolso
-  -situacao: SituacaoReembolso
-  -mpRefundId: Long
-  -erro: String
-  -concluidoEm: LocalDateTime
-  -criadoPor: Perfil
-  -criadoEm: LocalDateTime
-}
-class Checkin {
-  -evento: Evento
-  -metodo: MetodoCheckin
-  -criadoPor: Perfil
-  -criadoEm: LocalDateTime
-}
-class AvisoPagamento {
-  -mpNotificacaoId: String
-  -tipo: String
-  -acao: String
-  -mpRecursoId: String
-  -assinaturaValida: boolean
-  -situacao: SituacaoAviso
-  -payload: String
-  -erro: String
-  -processadoEm: LocalDateTime
-  -criadoEm: LocalDateTime
+  -situacaoReserva: string
+  -venceEm: string
+  -inscricaoId: int
+  -situacaoInscricao: string
+  +__construct(pdo: PDO)
+  +garantirTabelas(): void
+  +cadastrarTiposPadrao(eventoId: int, tipoEvento: string): void
+  +tiposPorEvento(eventoId: int): array
+  +reservar(perfilId: int, eventoId: int, tipoIngressoId: int, gratuito: bool): string
+  +cancelarInscricao(perfilId: int, inscricaoId: int): string
 }
 
-Perfil "1" *-- "0..*" TokenRecuperacaoSenha
-Perfil "1" -- "0..*" AceiteTermos
-Organizacao "1" *-- "0..*" MembroOrganizacao
-Perfil "1" -- "0..*" MembroOrganizacao
-Organizacao "1" *-- "0..*" ConviteEquipe
-Organizacao "1" -- "0..1" ContaMercadoPago
-Organizacao "1" *-- "0..*" EstadoOauthMp
-Organizacao "1" -- "0..*" ModeloEvento
-Organizacao "1" -- "0..*" Evento
-ModeloEvento "0..1" -- "0..*" Evento : modelo de origem
-Organizacao "0..1" -- "0..*" Aprovacao
-Evento "0..1" -- "0..*" Aprovacao
-Evento "1" *-- "0..*" LocalEvento
-Evento "1" *-- "0..*" TipoIngresso
-Perfil "1" -- "0..*" Pedido : comprador
-TipoIngresso "1" -- "0..*" Pedido
-Pedido "1" -- "0..1" Reserva
-TipoIngresso "1" -- "0..*" Inscricao
-Perfil "1" -- "0..*" Inscricao : titular
-Pedido "0..1" -- "0..1" Inscricao
-Inscricao "1" -- "0..*" Transferencia
-Pedido "1" -- "0..*" Reembolso
-Inscricao "1" -- "0..1" Checkin
-Pedido "0..1" -- "0..*" AvisoPagamento
+class TesteConexao {
+  +__construct(pdo: PDO)
+}
 
-note "Toda classe também tem id: Long.\nAs ligações vêm das chaves estrangeiras do schema." as N1
+note right of Perfil
+  Tabela: perfis
+  - id PK
+  - nome, email UNIQUE, cpf UNIQUE
+  - telefone, senha_hash (bcrypt)
+  - nivel_conta DEFAULT 'bronze'
+  - criado_em TIMESTAMP
+end note
+
+note right of Evento
+  Tabelas: organizacoes, eventos
+  - organizacoes: id, nome, situacao DEFAULT 'APROVADA'
+  - eventos: id, organizacao_id FK, nome, descricao,
+    tipo (GRATUITO|PAGO|BENEFICENTE),
+    situacao (RASCUNHO|PUBLICADO|EM_APROVACAO),
+    data_inicio, local_nome, criado_em
+end note
+
+note right of Compra
+  Tabelas: tipos_ingresso, reservas, inscricoes, checkins
+  - tipos_ingresso: id, evento_id FK, nome, preco, vagas
+  - reservas: id, perfil_id FK, evento_id FK,
+    tipo_ingresso_id FK, situacao (ATIVA), vence_em, criado_em
+  - inscricoes: id, perfil_id FK, evento_id FK,
+    tipo_ingresso_id FK, situacao (ATIVA|CANCELADA), criado_em
+    UNIQUE(perfil_id, evento_id)
+  - checkins: id, inscricao_id FK UNIQUE,
+    realizado_por FK, criado_em
+end note
+
+Database <|-- Perfil : usa conexão
+Database <|-- Evento : usa conexão
+Database <|-- Compra : usa conexão
+Database <|-- TesteConexao : usa conexão
+
+Evento "1" *-- "0..*" Compra : tipos_ingresso / reservas / inscricoes
+Perfil "1" -- "0..*" Compra : reservas / inscricoes / checkins
+Evento "1" -- "1" Organizacao : organizacao_id
+Organizacao "1" *-- "0..*" Evento
+
+class Organizacao {
+  -id: int
+  -nome: string
+  -situacao: string
+}
+
 @enduml

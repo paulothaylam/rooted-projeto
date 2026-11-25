@@ -1,0 +1,116 @@
+@startuml
+title Rooted – Diagrama de pacotes (arquitetura MVC)
+left to right direction
+
+package "src" {
+  package "controller" {
+    class HomeController {
+      +mostrar(pagina: string): void
+      +index(): void
+      +login(): void
+      +cadastro(): void
+      +painelParticipante(): void
+      +eventos(): void
+      +evento(): void
+      +reservar(): void
+      +painelOrganizador(): void
+      +publicarEvento(): void
+      +criarEvento(): void
+      +inscritos(): void
+      +credenciamento(): void
+      +painelSeeds(): void
+      +gerenciarEvento(): void
+      +excluirEvento(): void
+      +cancelarInscricao(): void
+      +editarPerfil(): void
+      +excluirConta(): void
+      +logout(): void
+    }
+  }
+
+  package "model" {
+    class Database {
+      {static} +conectar(): PDO
+    }
+    class Perfil {
+      +criar(dados: array): void
+      +buscarPorEmail(email: string): array|false
+      +emailExiste(email: string): bool
+      +cpfExiste(cpf: string): bool
+      +garantirTabela(): void
+      +buscarPorId(id: int): array|false
+      +atualizar(id: int, dados: array): void
+    }
+    class Evento {
+      +garantirTabelas(): void
+      +cadastrarExemplos(): void
+      +listar(): array
+      +listarTodosParaOrganizador(): array
+      +publicar(id: int): array
+      +listarFiltrado(busca: string, tipo: string): array
+      +buscarPorId(id: int): array|false
+    }
+    class Compra {
+      +garantirTabelas(): void
+      +cadastrarTiposPadrao(eventoId: int, tipo: string): void
+      +tiposPorEvento(eventoId: int): array
+      +reservar(perfilId: int, eventoId: int, tipoIngressoId: int, gratuito: bool): string
+      +cancelarInscricao(perfilId: int, inscricaoId: int): string
+    }
+    class TesteConexao
+  }
+
+  package "view" {
+    package "layouts" {}
+    package "pages" {}
+    package "assets" {}
+  }
+}
+
+package "Configuracao" {
+  class "index.php" as Index
+  class "docker-compose.yml" as DockerCompose
+  class ".env" as Env
+  class "nginx.conf" as NginxConfig
+}
+
+Index --> HomeController : roteamento ?pagina=
+HomeController --> Database : usa conexão
+HomeController --> Perfil
+HomeController --> Evento
+HomeController --> Compra
+HomeController ..> "view.layouts" : usa layouts
+HomeController ..> "view.pages" : renderiza paginas
+
+Database <.. Perfil : provê PDO
+Database <.. Evento : provê PDO
+Database <.. Compra : provê PDO
+Database <.. TesteConexao : provê PDO
+
+note right of "controller"
+  Front Controller unico:
+  HomeController::mostrar()
+  despacha por ?pagina=...
+  session_start() em index.php
+end note
+
+note right of "model"
+  Models criam tabelas (garantirTabelas)
+  e populam exemplos (cadastrarExemplos)
+  PDO com ERRMODE_EXCEPTION
+end note
+
+note right of "view"
+  Views PHP puras (sem engine de template)
+  Bootstrap 5 via CDN (apenas visual)
+  layouts/ = header + footer
+  pages/ = 14 paginas funcionais
+  assets/ = css/ js/ (minimos)
+end note
+
+note bottom of "Configuracao"
+  Docker: PHP-FPM + Nginx + MySQL
+  Variaveis de ambiente para credenciais DB
+end note
+
+@enduml

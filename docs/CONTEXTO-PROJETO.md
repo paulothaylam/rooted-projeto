@@ -1,195 +1,79 @@
-# Contexto editável do projeto Rooted
+# Contexto atual do projeto Rooted
 
-## Objetivo
+## Objetivo e escopo
 
-Mantenha as decisões deste projeto neste arquivo e atualize-o quando o escopo mudar.
+Rooted é um projeto acadêmico de eventos, implementado em PHP com arquitetura MVC,
+MySQL e Docker (PHP-FPM e Nginx). O escopo está encerrado: não estão planejadas novas
+funcionalidades nem integrações externas de negócio ou autenticação. Os diagramas
+representam o comportamento que existe no código atual, não propostas antigas ou planos.
 
-## Estado atual
+Não há processamento de pagamentos, login social, envio de e-mail, armazenamento externo
+ou chamadas a APIs de terceiros. Eventos pagos não podem ser publicados. A página usa
+Bootstrap 5 via CDN para apresentação visual; isso não corresponde a uma integração
+funcional do domínio.
 
-- Projeto acadêmico da plataforma Rooted.
-- Ambiente Docker com PHP, Nginx e MySQL.
-- Estrutura MVC simples em `src/model`, `src/view` e `src/controller`.
-- A página inicial apresenta a plataforma Rooted e o escopo da fase 1.
-- Bootstrap 5 está carregado por CDN.
-- O ícone da marca é o emoji 🌱.
-- Existem telas iniciais de login e cadastro em `src/view/pages`.
-- Cadastro e login usam MySQL e senhas com bcrypt.
-- O usuário é autenticado por e-mail e senha.
-- Após cadastro válido, o sistema redireciona automaticamente para o login.
+## Funcionalidades implementadas
 
-## Fluxo de desenvolvimento das telas pós-login
+- Cadastro com nome, e-mail, CPF, telefone, senha e escolha entre participante e
+  organizador; a senha é persistida com bcrypt.
+- Login por e-mail e senha, sessão PHP e logout.
+- Vitrine pública com busca por nome, organização ou local e filtros de tipo.
+- Página de detalhes de evento.
+- Inscrição imediata para evento gratuito; evento pago cria apenas uma reserva com prazo
+  armazenado de 15 minutos, sem pagamento.
+- Criação de evento em rascunho, edição e exclusão quando não há inscrições.
+- Publicação de evento gratuito; evento beneficente vai para `EM_APROVACAO`; evento pago
+  tem publicação bloqueada.
+- Painel do participante com inscrições, edição de perfil, cancelamento de inscrição e
+  exclusão de conta quando não há inscrições.
+- Painel do organizador com eventos e inscritos.
+- Credenciamento manual, pesquisando participante por nome ou CPF e registrando check-in.
+- Painel da Seeds que exibe organizações e eventos beneficentes. Botões de aprovação,
+  recusa, bloqueio e demais ações sem implementação ficam desabilitados ou são apenas
+  conteúdo visual.
+- Os painéis pós-login têm uma barra horizontal no topo para alternar entre as áreas de
+  participante e organizador; Seeds aparece somente para a conta administradora. Admin
+  também pode acessar os painéis de participante e organizador.
+  A opção do cadastro determina a área inicial, mas contas comuns podem acessar ambas.
 
-As telas serão criadas uma por vez. Nenhuma tela nova será considerada aprovada até o usuário visualizar e confirmar o protótipo.
+## Limites que os diagramas devem preservar
 
-1. Identificar o painel adequado ao perfil autenticado.
-2. Criar e mostrar somente a primeira tela da etapa.
-3. Registrar decisões e pendências neste arquivo.
-4. Aguardar aprovação ou ajustes.
-5. Implementar a próxima tela somente após autorização.
+- O prazo da reserva é gravado em `vence_em`, mas o PHP atual não libera
+  automaticamente reservas vencidas nem altera sua situação por expiração.
+- O check-in é um registro separado; não muda a situação da inscrição.
+- As situações de inscrição usadas pelo código são `ATIVA` e `CANCELADA`.
+- As situações de evento usadas nos fluxos atuais incluem `RASCUNHO`, `PUBLICADO` e
+  `EM_APROVACAO`. Aprovação ou recusa de evento beneficente não está implementada.
+- O check-in é manual. Não há leitura de QR Code.
+- A área Seeds e suas rotas são restritas ao papel `admin`; cadastro público só aceita
+  `participante` ou `organizador`. Contas comuns podem acessar as áreas de participante
+  e organizador; admins podem acessar as três.
+- O código não vincula operações de eventos ao proprietário do evento.
+- A interface de vendas/taxas e reembolsos da Seeds é apenas placeholder; não representa
+  dados nem operações disponíveis.
 
-Fluxos da fase 1 que devem orientar as telas:
-
-- Participante: vitrine, detalhes do evento, compra, inscrições, perfil e QR pessoal.
-- Organizador: painel, criação e publicação de eventos, inscrições, vendas e Mercado Pago.
-- Credenciamento: leitura do QR, resultado da validação e presença em tempo real.
-- Administrador da Seeds: aprovar organizações, aprovar eventos beneficentes, bloquear organizadores e acompanhar vendas.
-
-## Ordem proposta das próximas telas
-
-1. Painel do participante.
-2. Vitrine de eventos.
-3. Página de detalhes do evento.
-4. Fluxo de compra e reserva.
-5. Painel do organizador.
-6. Criar e publicar evento.
-7. Tela de credenciamento.
-8. Painel da Seeds.
-
-## Progressos concluídos
-
-- Painel inicial do participante criado.
-- Login bem-sucedido redireciona para `?pagina=painel-participante`.
-- Tela mostra nome do usuário, minhas inscrições, QR pessoal e perfil.
-- Primeira implementação cobre apenas a interface; dados reais de inscrições e QR ainda não foram criados.
-- Vitrine pública de eventos criada com busca visual, filtros e estado vazio.
-- Filtros pagos, gratuitos e dados reais de eventos ainda não estão implementados.
-- Navegação da vitrine adicionada à home e ao painel do participante.
-- Página de detalhes ligada aos registros reais da tabela `eventos`.
-- Eventos de exemplo disponíveis: Conecta Innovation, Rooted Experience e Futuro Digital.
-- Filtros da vitrine funcionam por busca e tipo de evento.
-- Cards de evento mostram a quantidade de ingressos disponíveis.
-- Painel do participante mostra todas as inscrições vinculadas ao usuário.
-- Busca da vitrine aceita nome do evento, organização e local.
-- Filtros Pagos e Gratuitos consultam o banco; Beneficente aparece em Gratuitos.
-- Quantidades atuais dos eventos de exemplo: Conecta Innovation 98, Rooted Experience 100 e Futuro Digital 100.
-- Próxima tela aprovada: fluxo de reserva e inscrição baseado na atividade de compra.
-- Tela de reserva criada em `/?pagina=reservar&id=<evento>`.
-- Eventos gratuitos confirmam a inscrição diretamente.
-- Eventos pagos exibem reserva por 15 minutos, ainda sem Mercado Pago nesta etapa.
-- Tabelas criadas: `tipos_ingresso`, `reservas` e `inscricoes`.
-- Fluxo gratuito testado com sucesso no banco.
-- Eventos reais de exemplo foram adicionados ao banco: Conecta Innovation, Rooted Experience e Futuro Digital.
-- Tela 1 das cinco telas pendentes criada: painel do organizador.
-- Link para o painel do organizador incluído na home e no painel do participante.
-- Tela 2 criada: formulário de criação de evento em rascunho.
-- Tela 2 testada com evento rascunho e 75 ingressos.
-- Tela 3 criada: lista de inscritos por evento.
-- Tela 3 validada com filtro por evento e CPF mascarado.
-- Tela 4 criada: credenciamento com busca manual e registros de check-in.
-- Tela 4 testada: entrada registrada e entrada duplicada bloqueada.
-- Tela 5 criada: painel administrativo da Seeds.
-- Telas pendentes desta sequência concluídas e aprovadas: painel do organizador, criar evento, inscritos, credenciamento e painel da Seeds.
-- Navegação pós-login organizada por áreas: participante, organizador e Seeds dentro dos próprios painéis.
-- Home pública mantém apenas eventos, conteúdo institucional e acesso à conta.
-
-## Próxima validação
-
-Aguardar aprovação da página de detalhes do evento antes de implementar o fluxo de compra.
-- Os diagramas UML estão em `docs/diagramas/`.
-
-## Stack planejada
-
-- Front-end: React + Vite
-- API: Spring Boot, Java 21+, REST e JWT
-- Banco: MySQL + Flyway
-- Pagamentos: Mercado Pago Checkout Pro
-- Arquivos: Cloudflare R2 ou AWS S3
-- Login social: Google OAuth2
-- E-mail: Resend
-- Monitoramento: Sentry
-
-## Primeiro escopo
-
-A fase 1 cobre venda de ingressos e credenciamento de um evento real.
-
-Públicos:
-
-- Público
-- Participante
-- Organizador
-- Equipe de credenciamento
-- Administrador da Seeds
-
-## Regras essenciais
-
-- A API decide as regras; o navegador apenas mostra e encaminha.
-- Participantes precisam de conta e possuem um QR pessoal.
-- O CPF não aparece completo fora do perfil do dono.
-- Reservas vencidas liberam a vaga.
-- Compras simultâneas não podem vender a mesma vaga.
-- Webhooks repetidos não podem gerar inscrições duplicadas.
-- Evento pago não é publicado sem conta Mercado Pago conectada.
-- A Seeds recebe 3% por ingresso pago.
-
-## Estrutura MVC atual
+## Estrutura
 
 ```text
 src/
 ├── index.php
+├── controller/HomeController.php
 ├── model/
-├── view/
-│   ├── layouts/
-│   ├── pages/
-│   └── assets/
-└── controller/
+└── view/
+    ├── layouts/
+    ├── pages/
+    └── assets/
 ```
 
-## Fases futuras
+`HomeController` encaminha as páginas por `?pagina=...`. `Database` fornece conexão PDO;
+`Perfil`, `Evento` e `Compra` concentram operações de persistência e fluxo. As tabelas
+usadas incluem `perfis`, `organizacoes`, `eventos`, `tipos_ingresso`, `reservas`,
+`inscricoes`, `checkins` e `teste_conexao`.
 
-### Fase 2
+## Documentação UML
 
-- Fila de espera
-- Checklist do organizador
-- Certificados
-- Portal do aluno
-- Níveis bronze, prata e ouro
-- Cupons e lotes
-- Página da organização
-
-### Fase 3
-
-- Check-in offline
-- WhatsApp
-- Networking
-- Chatbot
-- Mapa do local
-- Autoatendimento
-
-## Decisões pendentes
-
-- Associação definitiva entre Reembolso e Inscrição.
-- Reserva como entidade própria ou estado do Pedido.
-- Quantidade de ingressos por compra.
-- Política de reembolso parcial do evento.
-- Taxa mínima da Seeds.
-- Quem absorve ou repassa tarifas.
-- Tratamento da tarifa pelo Mercado Pago em reembolsos.
-
-## Instruções para futuras solicitações
-
-1. Consulte este arquivo e `docs/diagramas/contexto-uml-rooted.md`.
-2. Não invente requisitos não documentados.
-3. Marque sugestões como `[SUGESTÃO]`.
-4. Não implemente fase 2 ou fase 3 sem pedido explícito.
-5. Preserve `model`, `view`, `controller` e os layouts compartilhados.
-6. Preserve Bootstrap 5 por CDN.
-7. Use português nos nomes de domínio e interfaces.
-
-## Itens pendentes
-
-- [ ] Nome final do produto
-- [ ] Design visual da vitrine
-- [ ] Associação Reembolso–Pedido–Inscrição
-- [ ] Quantidade de ingressos por compra
-- [ ] Política de reembolso após 7 dias
-- [ ] Taxa mínima da Seeds
-- [x] Publicação de eventos gratuitos pelo painel do organizador
-- [x] Bloqueio de eventos pagos sem integração Mercado Pago
-- [x] Envio de eventos beneficentes para aprovação da Seeds
-- [x] Publicação controlada pelas situações RASCUNHO, EM_APROVACAO e PUBLICADO
-- [ ] Painel de detalhes para editar ou excluir eventos do organizador
-- [x] Painel de detalhes do evento permite editar dados e quantidade de ingressos
-- [x] Exclusão bloqueada quando o evento possui inscrições
-- [x] Editar perfil da conta
-- [x] Excluir conta com bloqueio enquanto houver inscrições
-- [x] Cancelar inscrição pelo painel do participante
+Os scripts PlantUML em `docs/diagramas/scripts/` cobrem somente estes oito tipos:
+caso de uso, classe, objeto, pacote, sequência, comunicação, estado e atividade.
+Referências a integrações e comportamentos não implementados devem ser excluídas dos
+diagramas. Consulte [contexto-uml-rooted.md](diagramas/contexto-uml-rooted.md) para a
+lista e os critérios de modelagem.

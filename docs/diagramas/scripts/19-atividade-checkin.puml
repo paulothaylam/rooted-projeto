@@ -1,0 +1,29 @@
+@startuml
+title Rooted – Atividade: Check-in (Credenciamento Manual)
+start
+
+:Credenciador acessa /credenciamento;
+:Seleciona evento;
+:Informa nome OU CPF do participante;
+:POST /credenciamento (evento_id, participante);
+:Busca inscrição no evento\nWHERE (nome LIKE ? OR cpf LIKE ?);
+if (inscrição encontrada?) then (sim)
+    if (inscricao.situacao == 'ATIVA') then (sim)
+        :Verifica checkins WHERE inscricao_id = ?;
+        if (já existe check-in?) then (sim)
+            :Exibe "Entrada já registrada em {criado_em}";
+        else (não)
+            :INSERT INTO checkins (inscricao_id, realizado_por);
+            :Exibe "Entrada: {nome} · CPF mascarado · {ingresso}";
+            note right: Check-in NÃO altera\ninscricao.situacao\n(continua ATIVA)
+        endif
+    else (não ATIVA)
+        :Exibe "Inscrição não está ativa.";
+    endif
+else (não encontrada)
+    :Exibe "Nenhuma inscrição para os dados.";
+endif
+
+stop
+
+@enduml

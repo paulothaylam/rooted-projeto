@@ -4,6 +4,17 @@ declare(strict_types=1);
 
 final class Evento
 {
+    private ?int $id = null;
+    private ?int $organizacaoId = null;
+    private ?string $nome = null;
+    private ?string $descricao = null;
+    private ?string $tipo = null;
+    private string $situacao = 'PUBLICADO';
+    private ?string $dataInicio = null;
+    private ?string $localNome = null;
+    private ?string $organizacao = null;
+    private ?string $criadoEm = null;
+
     public function __construct(private PDO $pdo)
     {
     }
@@ -138,6 +149,10 @@ final class Evento
             return ['tipo' => 'erro', 'mensagem' => 'Evento não encontrado.'];
         }
 
+        $this->id = (int) $evento['id'];
+        $this->tipo = $evento['tipo'];
+        $this->situacao = $evento['situacao'];
+
         if ($evento['situacao'] === 'PUBLICADO') {
             return ['tipo' => 'aviso', 'mensagem' => 'Este evento já está publicado.'];
         }
@@ -154,6 +169,8 @@ final class Evento
                 "UPDATE eventos SET situacao = 'EM_APROVACAO' WHERE id = :id"
             );
             $update->execute(['id' => $id]);
+            $this->situacao = 'EM_APROVACAO';
+            $this->situacao = 'PUBLICADO';
 
             return [
                 'tipo' => 'sucesso',
@@ -216,7 +233,18 @@ final class Evento
             WHERE e.id = :id AND e.situacao = 'PUBLICADO'
         ");
         $statement->execute(['id' => $id]);
+        $evento = $statement->fetch();
 
-        return $statement->fetch();
+        if ($evento) {
+            $this->id = (int) $evento['id'];
+            $this->nome = $evento['nome'];
+            $this->descricao = $evento['descricao'];
+            $this->tipo = $evento['tipo'];
+            $this->dataInicio = $evento['data_inicio'];
+            $this->localNome = $evento['local_nome'];
+            $this->organizacao = $evento['organizacao'];
+        }
+
+        return $evento;
     }
 }

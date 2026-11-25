@@ -1,0 +1,45 @@
+@startuml
+title Rooted – Estados: Evento
+[*] --> RASCUNHO : Organizador cria evento\n(HomeController::criarEvento)
+
+state "RASCUNHO" as RASCUNHO
+RASCUNHO : situacao = 'RASCUNHO'\nPode editar dados e vagas\nPode excluir (se 0 inscrições)
+
+RASCUNHO --> PUBLICADO : Organizador publica\nGRATUITO (Evento::publicar)
+state "PUBLICADO" as PUBLICADO
+PUBLICADO : situacao = 'PUBLICADO'\nVisível na vitrine pública\nInscrições permitidas
+
+RASCUNHO --> EM_APROVACAO : Organizador publica\nBENEFICENTE (Evento::publicar)
+state "EM_APROVACAO" as EM_APROVACAO
+EM_APROVACAO : situacao = 'EM_APROVACAO'\nAguardando aprovação da Seeds\nNÃO visível na vitrine
+
+RASCUNHO -[#red]-> PUBLICADO : Organizador tenta publicar\nPAGO (Evento::publicar)
+note right of RASCUNHO #red
+  BLOQUEADO no código:
+  "Evento pago bloqueado:
+  conecte o Mercado Pago
+  antes da publicação."
+  Permanece em RASCUNHO.
+end note
+
+PUBLICADO --> [*] : Evento encerrado\n(data_inicio passada)
+EM_APROVACAO --> [*] : (não implementado)
+
+note right of PUBLICADO
+  Apenas GRATUITO vai direto
+  para PUBLICADO.
+end note
+
+note right of EM_APROVACAO
+  Aprovação/recusa NÃO implementada.
+  Botões no painel Seeds são placeholders.
+end note
+
+note bottom of RASCUNHO
+  Exclusão só permitida em RASCUNHO
+  com COUNT(inscricoes) = 0.
+  Remove em cascata: reservas,
+  tipos_ingresso, evento.
+end note
+
+@enduml

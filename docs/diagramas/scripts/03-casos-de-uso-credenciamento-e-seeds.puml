@@ -2,32 +2,64 @@
 title Rooted – Casos de uso: credenciamento e Seeds
 left to right direction
 
-actor "Participante" as Participante
-actor "Equipe de credenciamento" as Equipe
-actor "Organizador" as Organizador
-actor "Administrador da Seeds" as Admin
-
-Participante <|-- Equipe
-Equipe <|-- Organizador
-Participante <|-- Admin
+actor "Credenciador" as Credenciador
+actor "Seeds" as Seeds
 
 rectangle "Rooted" {
-  usecase "Fazer check-in pelo QR Code" as UC45
-  usecase "Buscar inscrito por nome ou CPF" as UC46
-  usecase "Ver presença em tempo real" as UC47
-  usecase "Aprovar ou recusar organização" as UC48
-  usecase "Aprovar evento beneficente" as UC49
-  usecase "Bloquear organizador" as UC50
-  usecase "Acompanhar vendas e taxas" as UC51
-  usecase "Acompanhar reembolsos com falha" as UC52
+  usecase "Ver painel de credenciamento" as UC01
+  usecase "Buscar inscrição por nome ou CPF" as UC02
+  usecase "Registrar check-in\n(cria registro em checkins)" as UC03
+  usecase "Ver check-in já realizado" as UC04
+
+  usecase "Ver painel da Seeds\n(organizações e eventos beneficentes)" as UC05
+  usecase "Ver organizações\n(situação: APROVADA)" as UC06
+  usecase "Ver eventos beneficentes\n(situação: EM_APROVACAO)" as UC07
+  usecase "Ações de aprovar/recusar/bloquear\n(apenas visual, desabilitadas)" as UC08
 }
 
-Equipe -- UC45
-Equipe -- UC47
-UC45 <.. UC46 : <<extend>>
-Admin -- UC48
-Admin -- UC49
-Admin -- UC50
-Admin -- UC51
-Admin -- UC52
+Credenciador -- UC01
+Credenciador -- UC02
+Credenciador -- UC03
+Credenciador -- UC04
+
+Seeds -- UC05
+Seeds -- UC06
+Seeds -- UC07
+Seeds -- UC08
+
+UC02 ..> UC01 : <<include>>
+UC03 ..> UC02 : <<include>>
+UC04 ..> UC02 : <<include>>
+
+UC06 ..> UC05 : <<include>>
+UC07 ..> UC05 : <<include>>
+UC08 ..> UC05 : <<include>>
+
+note right of UC03
+  Check-in NÃO altera situação da inscrição.
+  Inscrição permanece ATIVA.
+  Cria registro em tabela checkins:
+  (inscricao_id, realizado_por, criado_em).
+  CPF exibido mascarado: 123.***.***-89
+end note
+
+note right of UC04
+  Se check-in já existe, mostra
+  data/hora do registro anterior.
+  Não permite duplicata (UNIQUE inscricao_id).
+end note
+
+note right of UC08
+  Botões de aprovar, recusar, bloquear
+  organização/evento beneficente são
+  PLACEHOLDERS VISUAIS desabilitados.
+  Não alteram dados no banco.
+  Código não implementa fluxo de aprovação.
+end note
+
+note right of UC01
+  Requer login, mas sem verificação
+  de papel/autorização no código atual.
+end note
+
 @enduml

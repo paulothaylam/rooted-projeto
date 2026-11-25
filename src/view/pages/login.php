@@ -30,7 +30,6 @@
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between">
                                     <label for="senha" class="form-label">Senha</label>
-                                    <a class="small text-decoration-none" href="#">Esqueceu a senha?</a>
                                 </div>
                                 <input type="password" class="form-control" id="senha" name="senha"
                                        autocomplete="current-password" required>

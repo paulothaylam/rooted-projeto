@@ -2,47 +2,58 @@
 title Rooted – Casos de uso: organizador
 left to right direction
 
-actor "Participante" as Participante
 actor "Organizador" as Organizador
-actor "Tarefas agendadas" as Tarefas <<sistema>>
-actor "Mercado Pago" as MP <<sistema externo>>
-
-Participante <|-- Organizador
 
 rectangle "Rooted" {
-  usecase "Pedir cadastro de organização" as UC30
-  usecase "Conectar a conta do Mercado Pago" as UC31
-  usecase "Renovar os tokens do Mercado Pago" as UC32
-  usecase "Convidar a equipe" as UC33
-  usecase "Criar evento" as UC34
-  usecase "Definir ingressos e pagamento" as UC35
-  usecase "Escolher a política de reembolso" as UC36
-  usecase "Criar a partir de um modelo" as UC37
-  usecase "Salvar evento como modelo" as UC38
-  usecase "Publicar evento" as UC39
-  usecase "Enviar evento beneficente para aprovação" as UC40
-  usecase "Ver inscritos e exportar planilha" as UC41
-  usecase "Ver vendas e reembolsos" as UC42
-  usecase "Cancelar evento" as UC43
-  usecase "Reembolsar todos os inscritos" as UC44
+  usecase "Ver painel do organizador\n(lista eventos próprios)" as UC01
+  usecase "Criar evento em rascunho\n(nome, descrição, tipo, data, local, vagas)" as UC02
+  usecase "Editar evento\n(dados e vagas do tipo de ingresso)" as UC03
+  usecase "Excluir evento\n(sem inscrições)" as UC04
+  usecase "Publicar evento" as UC05
+  usecase "Ver inscritos do evento\n(filtro por evento)" as UC06
 }
 
-Participante -- UC30
-Organizador -- UC31
-Organizador -- UC33
-Organizador -- UC34
-Organizador -- UC38
-Organizador -- UC39
-Organizador -- UC41
-Organizador -- UC42
-Organizador -- UC43
-Tarefas -- UC32
-UC34 ..> UC35 : <<include>>
-UC34 ..> UC36 : <<include>>
-UC34 <.. UC37 : <<extend>>
-UC39 <.. UC40 : <<extend>>
-UC43 ..> UC44 : <<include>>
-UC31 -- MP
-UC32 -- MP
-UC44 -- MP
+Organizador -- UC01
+Organizador -- UC02
+Organizador -- UC03
+Organizador -- UC04
+Organizador -- UC05
+Organizador -- UC06
+
+UC02 ..> UC01 : <<include>>
+UC03 ..> UC01 : <<include>>
+UC04 ..> UC01 : <<include>>
+UC05 ..> UC01 : <<include>>
+UC06 ..> UC01 : <<include>>
+
+note right of UC02
+  Cria organização automática:
+  "Organização de {nome do usuário}".
+  Evento nasce com situacao = RASCUNHO.
+  Tipo de ingresso criado com preço:
+  GRATUITO/BENEFICENTE = 0.00
+  PAGO = 50.00
+end note
+
+note right of UC04
+  Só permitido se
+  COUNT(inscricoes WHERE evento_id) = 0.
+  Remove em cascata:
+  reservas, tipos_ingresso, evento.
+end note
+
+note right of UC05
+  GRATUITO  -> situacao = PUBLICADO
+  BENEFICENTE -> situacao = EM_APROVACAO
+  PAGO      -> BLOQUEADO
+  (mensagem: "conecte o Mercado Pago")
+end note
+
+note right of UC01
+  O código atual NÃO implementa
+  autorização por papel nem verificação
+  de propriedade do evento.
+  Qualquer usuário logado acessa.
+end note
+
 @enduml

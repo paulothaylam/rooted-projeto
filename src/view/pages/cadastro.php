@@ -38,6 +38,25 @@
                                     <input type="tel" class="form-control" id="telefone" name="telefone"
                                            placeholder="(98) 99999-9999" autocomplete="tel" required>
                                 </div>
+                                <div class="col-12">
+                                    <fieldset>
+                                        <legend class="form-label fs-6">Tipo de conta</legend>
+                                        <div class="d-flex flex-wrap gap-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" id="tipo-participante"
+                                                       name="tipo_perfil" value="participante"
+                                                       <?= ($tipoPerfil ?? 'participante') === 'participante' ? 'checked' : '' ?> required>
+                                                <label class="form-check-label" for="tipo-participante">Participante</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" id="tipo-organizador"
+                                                       name="tipo_perfil" value="organizador"
+                                                       <?= ($tipoPerfil ?? '') === 'organizador' ? 'checked' : '' ?> required>
+                                                <label class="form-check-label" for="tipo-organizador">Organizador</label>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
                                 <div class="col-md-6">
                                     <label for="cpf" class="form-label">CPF</label>
                                     <input type="text" class="form-control" id="cpf" name="cpf"

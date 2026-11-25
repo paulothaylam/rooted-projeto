@@ -1,0 +1,26 @@
+@startuml
+title Rooted – Estados: Organização
+[*] --> APROVADA : Criada automaticamente ao\ncriar evento (criarEvento)\n"Organização de {nome}"
+
+state "APROVADA" as APROVADA
+APROVADA : organizacoes.situacao = 'APROVADA'\nPadrão no CREATE TABLE
+
+APROVADA -[#gray]-> BLOQUEADA : (placeholders visuais\nno painel Seeds)
+state "BLOQUEADA" as BLOQUEADA <<não implementado>>
+BLOQUEADA : Botão "Bloquear" no painel Seeds\ndesabilitado, não altera banco
+
+APROVADA -[#gray]-> RECUSADA : (placeholders visuais\nno painel Seeds)
+state "RECUSADA" as RECUSADA <<não implementado>>
+RECUSADA : Botão "Recusar" no painel Seeds\ndesabilitado, não altera banco
+
+note bottom of APROVADA
+  Código ATUAL:
+  - CREATE TABLE: situacao DEFAULT 'APROVADA'
+  - Painel Seeds: lista organizações
+  - Botões Aprovar/Recusar/Bloquear: APENAS VISUAIS
+  - Nenhum UPDATE em organizacoes.situacao implementado
+  - Evento BENEFICENTE vai para EM_APROVACAO
+    mas organização permanece APROVADA
+end note
+
+@enduml

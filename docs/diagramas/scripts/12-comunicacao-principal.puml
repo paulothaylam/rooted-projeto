@@ -1,0 +1,99 @@
+@startuml
+title Rooted – Diagrama de Comunicação: Fluxos Principais
+
+actor "Usuário" as User
+actor "Credenciador" as Cred
+actor "Organizador" as Org
+participant "HomeController" as HC
+participant "Database" as DB
+participant "Perfil" as Perfil
+participant "Evento" as Evento
+participant "Compra" as Compra
+
+' ===== LOGIN =====
+User -> HC : 1: POST login(email, senha)
+HC -> DB : 1.1: conectar()
+DB --> HC : 1.2: PDO
+HC -> Perfil : 1.3: new Perfil(PDO)
+HC -> Perfil : 1.4: buscarPorEmail(email)
+Perfil -> DB : 1.5: SELECT ... WHERE email = ?
+DB --> Perfil : 1.6: row (id, nome, senha_hash)
+HC -> HC : 1.7: password_verify(senha, senha_hash)
+alt senha OK
+    HC -> HC : 1.8: $_SESSION[usuario_id, nome, email]
+    HC --> User : 1.9: Redirect painel-participante
+else falha
+    HC --> User : 1.9: "E-mail ou senha incorretos."
+end
+
+' ===== INSCRIÇÃO GRATUITA =====
+User -> HC : 2: POST reservar(eventoId, tipoIngressoId)
+HC -> DB : 2.1: conectar()
+DB --> HC : 2.2: PDO
+HC -> Evento : 2.3: new Evento(PDO)
+HC -> Evento : 2.4: buscarPorId(eventoId)
+Evento -> DB : 2.5: SELECT ... WHERE id=? AND situacao='PUBLICADO'
+DB --> Evento : 2.6: row (tipo='GRATUITO')
+HC -> Compra : 2.7: new Compra(PDO)
+HC -> Compra : 2.8: reservar(perfilId, eventoId, tipoIngressoId, true)
+Compra -> DB : 2.9: BEGIN
+Compra -> DB : 2.10: SELECT vagas FROM tipos_ingresso WHERE id=? FOR UPDATE
+DB --> Compra : 2.11: vagas
+Compra -> DB : 2.12: INSERT INTO reservas (...)
+Compra -> DB : 2.13: UPDATE tipos_ingresso SET vagas=vagas-1
+Compra -> DB : 2.14: INSERT INTO inscricoes (..., situacao='ATIVA')
+Compra -> DB : 2.15: COMMIT
+HC --> User : 2.16: "Inscrição gratuita confirmada!"
+
+' ===== RESERVA PAGA (15 min) =====
+User -> HC : 3: POST reservar(eventoId, tipoIngressoId)
+HC -> Compra : 3.1: reservar(perfilId, eventoId, tipoIngressoId, false)
+Compra -> DB : 3.2: BEGIN
+Compra -> DB : 3.3: SELECT vagas ... FOR UPDATE
+DB --> Compra : 3.4: vagas
+Compra -> DB : 3.5: INSERT INTO reservas (..., vence_em=now()+15min)
+Compra -> DB : 3.6: UPDATE tipos_ingresso SET vagas=vagas-1
+Compra -> DB : 3.7: COMMIT
+HC --> User : 3.8: "Reserva criada por 15 minutos."
+note right: NÃO cria inscricao\nNÃO processa pagamento\nNÃO expira automaticamente
+
+' ===== CANCELAMENTO =====
+User -> HC : 4: POST cancelar-inscricao(inscricaoId)
+HC -> Compra : 4.1: cancelarInscricao(perfilId, inscricaoId)
+Compra -> DB : 4.2: BEGIN
+Compra -> DB : 4.3: SELECT ... FROM inscricoes WHERE id=? AND perfil_id=? FOR UPDATE
+DB --> Compra : 4.4: row (situacao='ATIVA', tipo_ingresso_id)
+Compra -> DB : 4.5: UPDATE inscricoes SET situacao='CANCELADA'
+Compra -> DB : 4.6: UPDATE tipos_ingresso SET vagas=vagas+1
+Compra -> DB : 4.7: COMMIT
+HC --> User : 4.8: "Inscrição cancelada. Vaga devolvida."
+
+' ===== CHECK-IN =====
+Cred -> HC : 5: POST credenciamento(eventoId, termo=nome/CPF)
+HC -> DB : 5.1: SELECT i.*, p.nome, p.cpf, ti.nome FROM inscricoes i ...
+DB --> HC : 5.2: row (situacao='ATIVA')
+HC -> DB : 5.3: SELECT criado_em FROM checkins WHERE inscricao_id=?
+alt existe
+    HC --> Cred : 5.4: "Já registrado em " + criado_em
+else novo
+    HC -> DB : 5.4: INSERT INTO checkins (inscricao_id, realizado_por)
+    HC --> Cred : 5.5: "Entrada: nome · CPF mascarado · ingresso"
+end
+note right: Check-in NÃO muda situacao da inscricao
+
+' ===== PUBLICAR EVENTO =====
+Org -> HC : 6: POST publicar-evento(eventoId)
+HC -> Evento : 6.1: publicar(eventoId)
+Evento -> DB : 6.2: SELECT tipo, situacao FROM eventos WHERE id=?
+DB --> Evento : 6.3: row
+alt tipo='PAGO'
+    HC --> Org : 6.4: "Bloqueado: conecte Mercado Pago"
+else tipo='BENEFICENTE'
+    Evento -> DB : 6.4: UPDATE eventos SET situacao='EM_APROVACAO'
+    HC --> Org : 6.5: "Enviado para aprovação da Seeds"
+else tipo='GRATUITO'
+    Evento -> DB : 6.4: UPDATE eventos SET situacao='PUBLICADO'
+    HC --> Org : 6.5: "Publicado na vitrine"
+end
+
+@enduml

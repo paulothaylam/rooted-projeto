@@ -1,0 +1,105 @@
+@startuml
+title Rooted – Sequência: Painel Seeds e Gestão de Evento
+actor "Seeds" as User
+actor "Organizador" as Org
+participant "index.php" as Index
+participant "HomeController" as HC
+participant "Evento" as Evento
+participant "Database" as DB
+
+== Painel da Seeds ==
+User -> Index: GET /?pagina=painel-seeds
+Index -> HC: mostrar("painel-seeds")
+HC -> DB: conectar()
+DB --> HC: PDO
+HC -> DB: CREATE TABLE IF NOT EXISTS organizacoes (id, nome, situacao DEFAULT 'APROVADA')
+HC -> DB: SELECT id, nome, situacao FROM organizacoes ORDER BY nome
+DB --> HC: rows (organizações)
+HC -> Evento: new Evento(PDO)
+HC -> Evento: garantirTabelas()
+HC -> DB: SELECT e.id, e.nome, e.situacao, o.nome AS organizacao FROM eventos e INNER JOIN organizacoes o ON o.id = e.organizacao_id WHERE e.tipo = 'BENEFICENTE' ORDER BY e.data_inicio
+DB --> HC: rows (eventos beneficentes EM_APROVACAO)
+HC --> User: Exibe organizações + eventos beneficentes
+note right: Botões "Aprovar", "Recusar", "Bloquear"\napenas visuais (desabilitados).\nNão alteram dados no banco.
+
+== Gerenciar Evento (Editar) ==
+Org -> Index: GET /?pagina=gerenciar-evento&id=1
+Index -> HC: mostrar("gerenciar-evento")
+HC -> DB: conectar()
+DB --> HC: PDO
+HC -> DB: SELECT e.*, o.nome AS organizacao, COALESCE(ti.id,0) AS tipo_ingresso_id, COALESCE(ti.vagas,100) AS vagas FROM eventos e INNER JOIN organizacoes o ON o.id = e.organizacao_id LEFT JOIN tipos_ingresso ti ON ti.evento_id = e.id WHERE e.id = ? LIMIT 1
+DB --> HC: row (evento)
+HC --> Org: Formulário preenchido (nome, descrição, tipo, data, local, vagas)
+
+Org -> Index: POST /?pagina=gerenciar-evento&id=1 (dados atualizados)
+Index -> HC: mostrar("gerenciar-evento")
+HC -> DB: BEGIN TRANSACTION
+HC -> DB: UPDATE eventos SET nome=?, descricao=?, tipo=?, data_inicio=?, local_nome=? WHERE id=?
+HC -> DB: IF tipo_ingresso_id > 0 THEN UPDATE tipos_ingresso SET vagas=? WHERE id=? ELSE INSERT INTO tipos_ingresso (...) END IF
+HC -> DB: COMMIT
+HC -> DB: SELECT ... WHERE e.id = ? (recarrega)
+HC --> Org: "Evento atualizado com sucesso."
+
+== Excluir Evento ==
+Org -> Index: POST /?pagina=excluir-evento (evento_id)
+Index -> HC: mostrar("excluir-evento")
+HC -> DB: conectar()
+DB --> HC: PDO
+HC -> DB: SELECT COUNT(*) FROM inscricoes WHERE evento_id = ?
+DB --> HC: count
+alt count > 0
+    HC --> Org: "Não é possível excluir um evento com inscrições."
+else count = 0
+    HC -> DB: BEGIN TRANSACTION
+    HC -> DB: DELETE FROM reservas WHERE evento_id = ?
+    HC -> DB: DELETE FROM tipos_ingresso WHERE evento_id = ?
+    HC -> DB: DELETE FROM eventos WHERE id = ?
+    HC -> DB: COMMIT
+    HC --> Org: "Evento excluído com sucesso."
+end
+
+== Editar Perfil ==
+User -> Index: GET /?pagina=editar-perfil
+Index -> HC: mostrar("editar-perfil")
+HC -> DB: conectar()
+DB --> HC: PDO
+HC -> Perfil: new Perfil(PDO)
+HC -> Perfil: garantirTabela()
+HC -> Perfil: buscarPorId(usuario_id)
+Perfil -> DB: SELECT id, nome, email, cpf, telefone FROM perfis WHERE id = ?
+DB --> Perfil: row
+HC --> User: Formulário preenchido
+
+User -> Index: POST /?pagina=editar-perfil (nome, email, cpf, telefone)
+Index -> HC: mostrar("editar-perfil")
+HC -> DB: SELECT id FROM perfis WHERE email = ? AND id <> ?
+HC -> DB: SELECT id FROM perfis WHERE cpf = ? AND id <> ?
+alt email ou cpf em uso
+    HC --> User: "Este e-mail/CPF já está em uso."
+else livres
+    HC -> Perfil: atualizar(usuario_id, dados)
+    Perfil -> DB: UPDATE perfis SET nome=?, email=?, cpf=?, telefone=? WHERE id=?
+    HC -> HC: $_SESSION['usuario_nome'] = nome
+    HC -> HC: $_SESSION['usuario_email'] = email
+    HC --> User: "Perfil atualizado com sucesso."
+end
+
+== Excluir Conta ==
+User -> Index: POST /?pagina=excluir-conta
+Index -> HC: mostrar("excluir-conta")
+HC -> DB: conectar()
+DB --> HC: PDO
+HC -> DB: SELECT COUNT(*) FROM inscricoes WHERE perfil_id = ?
+DB --> HC: count
+alt count > 0
+    HC --> User: "Não é possível excluir a conta enquanto houver inscrições."
+else count = 0
+    HC -> DB: BEGIN TRANSACTION
+    HC -> DB: DELETE FROM reservas WHERE perfil_id = ?
+    HC -> DB: DELETE FROM perfis WHERE id = ?
+    HC -> DB: COMMIT
+    HC -> HC: session_destroy()
+    HC --> User: Redirect /?pagina=login&conta=excluida
+end
+
+@enduml

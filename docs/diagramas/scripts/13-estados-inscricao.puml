@@ -1,0 +1,36 @@
+@startuml
+title Rooted – Estados: Inscrição
+[*] --> ATIVA : Inscrição gratuita confirmada\n(Compra::reservar gratuito=true)
+
+state "ATIVA" as ATIVA {
+    state "Confirmada" as Confirmada
+    [*] --> Confirmada
+    Confirmada : inscricoes.situacao = 'ATIVA'\ncriado_em = now()
+}
+
+ATIVA --> CANCELADA : Participante cancela\n(Compra::cancelarInscricao)
+state "CANCELADA" as CANCELADA
+CANCELADA : inscricoes.situacao = 'CANCELADA'\nvaga devolvida (tipos_ingresso.vagas++)
+
+CANCELADA --> [*]
+
+note right of ATIVA
+  Participante pode:
+  - Ver no painel
+  - Cancelar
+  - Fazer check-in
+end note
+
+note right of CANCELADA
+  Irreversível.
+  Não volta para ATIVA.
+end note
+
+note bottom of ATIVA
+  Evento GRATUITO: cria inscrição direta ATIVA.
+  Evento PAGO: NÃO cria inscrição (só reserva).
+  Check-in NÃO muda este estado.
+  Estados usados no código: ATIVA, CANCELADA.
+end note
+
+@enduml

@@ -1,0 +1,53 @@
+@startuml
+title Rooted – Sequência: Login e Cadastro
+actor "Usuário" as User
+participant "index.php" as Index
+participant "HomeController" as HC
+participant "Perfil" as Perfil
+participant "Database" as DB
+
+== Cadastro ==
+User -> Index: GET /?pagina=cadastro
+Index -> HC: mostrar("cadastro")
+HC -> User: Exibe formulário
+
+User -> Index: POST /?pagina=cadastro (nome, email, cpf, telefone, senha)
+Index -> HC: mostrar("cadastro")
+HC -> DB: conectar()
+DB --> HC: PDO
+HC -> Perfil: new Perfil(PDO)
+Perfil -> DB: garantirTabela() (CREATE TABLE perfis)
+HC -> Perfil: emailExiste(email)
+Perfil -> DB: SELECT 1 FROM perfis WHERE email = ?
+DB --> Perfil: false
+HC -> Perfil: cpfExiste(cpf)
+Perfil -> DB: SELECT 1 FROM perfis WHERE cpf = ?
+DB --> Perfil: false
+HC -> Perfil: criar(dados)
+Perfil -> DB: INSERT INTO perfis (...) VALUES (...)
+DB --> Perfil: lastInsertId
+HC --> User: Redirect /?pagina=login&cadastro=sucesso
+
+== Login ==
+User -> Index: GET /?pagina=login
+Index -> HC: mostrar("login")
+HC -> User: Exibe formulário
+
+User -> Index: POST /?pagina=login (email, senha)
+Index -> HC: mostrar("login")
+HC -> DB: conectar()
+DB --> HC: PDO
+HC -> Perfil: new Perfil(PDO)
+HC -> Perfil: buscarPorEmail(email)
+Perfil -> DB: SELECT id, nome, email, senha_hash FROM perfis WHERE email = ?
+DB --> Perfil: row ou false
+alt Usuário não encontrado ou senha incorreta
+    HC --> User: "E-mail ou senha incorretos."
+else Senha correta (password_verify)
+    HC -> HC: $_SESSION['usuario_id'] = id
+    HC -> HC: $_SESSION['usuario_nome'] = nome
+    HC -> HC: $_SESSION['usuario_email'] = email
+    HC --> User: Redirect /?pagina=painel-participante
+end
+
+@enduml

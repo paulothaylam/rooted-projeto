@@ -11,6 +11,15 @@ final class HomeController
 {
     public function mostrar(string $pagina): void
     {
+        if (isset($_SESSION['usuario_id'])) {
+            $tipoPerfil = (string) ($_SESSION['usuario_tipo'] ?? '');
+
+            if ($pagina === 'painel-seeds' && $tipoPerfil !== 'admin') {
+                header('Location: /?pagina=painel-participante');
+                exit;
+            }
+        }
+
         if ($pagina === 'login') {
             $this->login();
             return;
@@ -96,6 +105,11 @@ final class HomeController
             return;
         }
 
+        if ($pagina === 'logout') {
+            $this->logout();
+            return;
+        }
+
         $this->index();
     }
 
@@ -103,6 +117,28 @@ final class HomeController
     {
         $pageTitle = 'Rooted | Plataforma de eventos';
         require __DIR__ . '/../view/pages/home.php';
+    }
+
+    public function logout(): void
+    {
+        $_SESSION = [];
+
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params['path'],
+                $params['domain'],
+                $params['secure'],
+                $params['httponly']
+            );
+        }
+
+        session_destroy();
+        header('Location: /?pagina=login&logout=sucesso');
+        exit;
     }
 
     public function login(): void
@@ -113,6 +149,16 @@ final class HomeController
 
         if (($_GET['cadastro'] ?? null) === 'sucesso') {
             $mensagem = 'Cadastro realizado com sucesso! Agora faça login.';
+            $tipoMensagem = 'sucesso';
+        }
+
+        if (($_GET['logout'] ?? null) === 'sucesso') {
+            $mensagem = 'Você saiu da conta com sucesso.';
+            $tipoMensagem = 'sucesso';
+        }
+
+        if (($_GET['conta'] ?? null) === 'excluida') {
+            $mensagem = 'Sua conta foi excluída.';
             $tipoMensagem = 'sucesso';
         }
 
@@ -132,7 +178,13 @@ final class HomeController
                     $_SESSION['usuario_id'] = (int) $usuario['id'];
                     $_SESSION['usuario_nome'] = $usuario['nome'];
                     $_SESSION['usuario_email'] = $usuario['email'];
-                    header('Location: /?pagina=painel-participante');
+                    $_SESSION['usuario_tipo'] = $usuario['tipo_perfil'];
+                    $paginaInicial = match ($usuario['tipo_perfil']) {
+                        'admin' => 'painel-seeds',
+                        'organizador' => 'painel-organizador',
+                        default => 'painel-participante',
+                    };
+                    header('Location: /?pagina=' . $paginaInicial);
                     exit;
                 }
             } catch (PDOException $exception) {
@@ -156,6 +208,7 @@ final class HomeController
             $cpf = trim((string) ($_POST['cpf'] ?? ''));
             $telefone = trim((string) ($_POST['telefone'] ?? ''));
             $senha = (string) ($_POST['senha'] ?? '');
+            $tipoPerfil = (string) ($_POST['tipo_perfil'] ?? '');
             $termos = isset($_POST['termos']);
 
             if ($nome === '' || $email === '' || $cpf === '' || $telefone === '' || $senha === '') {
@@ -169,6 +222,9 @@ final class HomeController
                 $tipoMensagem = 'erro';
             } elseif (!$termos) {
                 $mensagem = 'Você precisa aceitar os Termos de Uso.';
+                $tipoMensagem = 'erro';
+            } elseif (!in_array($tipoPerfil, ['participante', 'organizador'], true)) {
+                $mensagem = 'Selecione Participante ou Organizador.';
                 $tipoMensagem = 'erro';
             } else {
                 try {
@@ -189,6 +245,7 @@ final class HomeController
                             'cpf' => $cpf,
                             'telefone' => $telefone,
                             'senha' => $senha,
+                            'tipo_perfil' => $tipoPerfil,
                         ]);
                         header('Location: /?pagina=login&cadastro=sucesso');
                         exit;
@@ -951,6 +1008,11 @@ final class HomeController
     {
         if (!isset($_SESSION['usuario_id'])) {
             header('Location: /?pagina=login');
+            exit;
+        }
+
+        if (($_SESSION['usuario_tipo'] ?? '') !== 'admin') {
+            header('Location: /?pagina=painel-participante');
             exit;
         }
 

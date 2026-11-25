@@ -1,0 +1,44 @@
+@startuml
+title Rooted – Atividade: Inscrição Gratuita vs Reserva Paga
+start
+
+:Usuário acessa vitrine (/eventos);
+:Busca/filtra eventos;
+:Seleciona evento;
+if (Evento.tipo == 'GRATUITO' or 'BENEFICENTE') then (Gratuito/Beneficente)
+    :Clica "Inscrever-se";
+    :POST /reservar (tipo_ingresso_id);
+    :Compra::reservar(gratuito=true);
+    :BEGIN TRANSACTION;
+    :SELECT vagas FOR UPDATE;
+    if (vagas >= 1) then (sim)
+        :INSERT INTO reservas (vence_em=now+15min);
+        :UPDATE tipos_ingresso SET vagas=vagas-1;
+        :INSERT INTO inscricoes (situacao='ATIVA');
+        :COMMIT;
+        :Exibe "Inscrição gratuita confirmada!";
+    else (não)
+        :ROLLBACK;
+        :Exibe "Não há vagas disponíveis.";
+    endif
+else (PAGO)
+    :Clica "Reservar";
+    :POST /reservar (tipo_ingresso_id);
+    :Compra::reservar(gratuito=false);
+    :BEGIN TRANSACTION;
+    :SELECT vagas FOR UPDATE;
+    if (vagas >= 1) then (sim)
+        :INSERT INTO reservas (vence_em=now+15min);
+        :UPDATE tipos_ingresso SET vagas=vagas-1;
+        :COMMIT;
+        :Exibe "Reserva criada por 15 minutos.";
+        note right: NÃO cria inscricao\nNÃO processa pagamento\nNÃO expira automaticamente
+    else (não)
+        :ROLLBACK;
+        :Exibe "Não há vagas disponíveis.";
+    endif
+endif
+
+stop
+
+@enduml

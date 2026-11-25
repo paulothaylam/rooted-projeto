@@ -1,0 +1,88 @@
+@startuml
+title Rooted – Sequência: Inscrição em Evento (Gratuito vs Pago)
+actor "Participante" as User
+participant "index.php" as Index
+participant "HomeController" as HC
+participant "Evento" as Evento
+participant "Compra" as Compra
+participant "Database" as DB
+
+== Listar Eventos (Vitrine) ==
+User -> Index: GET /?pagina=eventos[&busca=...&tipo=...]
+Index -> HC: mostrar("eventos")
+HC -> DB: conectar()
+DB --> HC: PDO
+HC -> Evento: new Evento(PDO)
+HC -> Evento: garantirTabelas()
+HC -> Evento: cadastrarExemplos() (se vazio)
+HC -> Compra: new Compra(PDO)
+HC -> Compra: garantirTabelas()
+loop para cada evento
+    HC -> Compra: cadastrarTiposPadrao(eventoId, tipo)
+end
+HC -> Evento: listarFiltrado(busca, tipo)
+Evento -> DB: SELECT ... FROM eventos e INNER JOIN organizacoes o ... WHERE e.situacao = 'PUBLICADO' ...
+DB --> Evento: rows
+HC --> User: Exibe lista de eventos
+
+== Detalhes do Evento ==
+User -> Index: GET /?pagina=evento&id=1
+Index -> HC: mostrar("evento")
+HC -> Evento: buscarPorId(id)
+Evento -> DB: SELECT ... WHERE e.id = ? AND e.situacao = 'PUBLICADO'
+DB --> Evento: row
+HC --> User: Exibe detalhes + botão "Inscrever-se" ou "Reservar"
+
+== Inscrição Evento GRATUITO ==
+User -> Index: GET /?pagina=reservar&id=1
+Index -> HC: mostrar("reservar")
+HC -> Evento: buscarPorId(id)
+HC -> Compra: tiposPorEvento(eventoId)
+Compra -> DB: SELECT ... FROM tipos_ingresso WHERE evento_id = ?
+DB --> Compra: rows (preco = 0.00)
+HC --> User: Exibe formulário com tipo de ingresso (gratuito)
+
+User -> Index: POST /?pagina=reservar&id=1 (tipo_ingresso_id)
+Index -> HC: mostrar("reservar")
+HC -> Compra: reservar(perfilId, eventoId, tipoIngressoId, gratuito=true)
+Compra -> DB: BEGIN TRANSACTION
+Compra -> DB: SELECT vagas FROM tipos_ingresso WHERE id = ? AND evento_id = ? FOR UPDATE
+DB --> Compra: vagas
+alt vagas >= 1
+    Compra -> DB: INSERT INTO reservas (perfil_id, evento_id, tipo_ingresso_id, situacao='ATIVA', vence_em=now()+15min)
+    Compra -> DB: UPDATE tipos_ingresso SET vagas = vagas - 1 WHERE id = ?
+    Compra -> DB: INSERT INTO inscricoes (perfil_id, evento_id, tipo_ingresso_id, situacao='ATIVA')
+    Compra -> DB: COMMIT
+    HC --> User: "Inscrição gratuita confirmada!"
+else sem vagas
+    Compra -> DB: ROLLBACK
+    HC --> User: "Não há vagas disponíveis."
+end
+
+== Reserva Evento PAGO ==
+User -> Index: GET /?pagina=reservar&id=2 (evento PAGO)
+Index -> HC: mostrar("reservar")
+HC -> Evento: buscarPorId(id)
+HC -> Compra: tiposPorEvento(eventoId)
+Compra -> DB: SELECT ... FROM tipos_ingresso WHERE evento_id = ?
+DB --> Compra: rows (preco = 50.00)
+HC --> User: Exibe formulário com tipo de ingresso (R$ 50,00)
+
+User -> Index: POST /?pagina=reservar&id=2 (tipo_ingresso_id)
+Index -> HC: mostrar("reservar")
+HC -> Compra: reservar(perfilId, eventoId, tipoIngressoId, gratuito=false)
+Compra -> DB: BEGIN TRANSACTION
+Compra -> DB: SELECT vagas FROM tipos_ingresso WHERE id = ? AND evento_id = ? FOR UPDATE
+DB --> Compra: vagas
+alt vagas >= 1
+    Compra -> DB: INSERT INTO reservas (perfil_id, evento_id, tipo_ingresso_id, situacao='ATIVA', vence_em=now()+15min)
+    Compra -> DB: UPDATE tipos_ingresso SET vagas = vagas - 1 WHERE id = ?
+    Compra -> DB: COMMIT
+    HC --> User: "Reserva criada por 15 minutos."
+    note right: NÃO cria inscricao.\nNÃO processa pagamento.\nNÃO há rotina de expiração.
+else sem vagas
+    Compra -> DB: ROLLBACK
+    HC --> User: "Não há vagas disponíveis."
+end
+
+@enduml

@@ -16,7 +16,15 @@
                 <li class="nav-item"><a class="nav-link" href="#para-quem">Para quem</a></li>
                 <li class="nav-item"><a class="nav-link" href="#fases">Fases</a></li>
                 <?php if (isset($_SESSION['usuario_id'])): ?>
-                    <li class="nav-item ms-lg-2"><a class="btn btn-success px-3" href="?pagina=painel-participante">Meu painel</a></li>
+                    <?php
+                    $paginaPainel = match ($_SESSION['usuario_tipo'] ?? 'participante') {
+                        'admin' => 'painel-seeds',
+                        'organizador' => 'painel-organizador',
+                        default => 'painel-participante',
+                    };
+                    ?>
+                    <li class="nav-item ms-lg-2"><a class="btn btn-success px-3" href="?pagina=<?= $paginaPainel ?>">Meu painel</a></li>
+                    <li class="nav-item"><a class="nav-link text-danger" href="?pagina=logout">Sair</a></li>
                 <?php else: ?>
                     <li class="nav-item"><a class="nav-link" href="?pagina=login">Entrar</a></li>
                     <li class="nav-item ms-lg-2"><a class="btn btn-success px-3" href="?pagina=cadastro">Criar conta</a></li>

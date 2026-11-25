@@ -1,0 +1,43 @@
+@startuml
+title Rooted – Atividade: Criar e Publicar Evento (Organizador)
+start
+
+fork
+    :Criar Evento (Rascunho);
+    :GET /criar-evento;
+    :Preenche: nome, descrição, tipo,\n    data_inicio, local, vagas, política;
+    :POST /criar-evento;
+    :BEGIN TRANSACTION;
+    :INSERT INTO organizacoes (nome='Org de {user}');
+    :INSERT INTO eventos (situacao='RASCUNHO', ...);
+    :INSERT INTO tipos_ingresso (preco, vagas);
+    note right: GRATUITO/BENEFICENTE: preco=0\nPAGO: preco=50.00
+    :COMMIT;
+    :Exibe "Evento criado como rascunho.";
+fork again
+    :Publicar Evento;
+    :No painel organizador, clica "Publicar";
+    :POST /publicar-evento (evento_id);
+    :Evento::publicar(evento_id);
+    :SELECT tipo, situacao FROM eventos WHERE id=?;
+    if (situacao == 'PUBLICADO') then (já publicado)
+        :Exibe "Já está publicado.";
+    else (rascunho/em_aprovacao)
+        if (tipo == 'PAGO') then (PAGO)
+            :Exibe "Bloqueado: conecte Mercado Pago.";
+        else (GRATUITO ou BENEFICENTE)
+            if (tipo == 'GRATUITO') then (GRATUITO)
+                :UPDATE eventos SET situacao='PUBLICADO';
+                :Exibe "Publicado na vitrine.";
+            else (BENEFICENTE)
+                :UPDATE eventos SET situacao='EM_APROVACAO';
+                :Exibe "Enviado para aprovação da Seeds.";
+                note right: Aprovação NÃO implementada.\nBotões no painel Seeds\ndesabilitados.
+            endif
+        endif
+    endif
+end fork
+
+stop
+
+@enduml

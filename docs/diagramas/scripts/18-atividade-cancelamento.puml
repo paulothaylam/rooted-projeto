@@ -1,0 +1,29 @@
+@startuml
+title Rooted – Atividade: Cancelamento de Inscrição
+start
+
+:Participante acessa painel (/painel-participante);
+:Listar inscrições (situacao='ATIVA');
+:Seleciona inscrição para cancelar;
+:POST /cancelar-inscricao (inscricao_id);
+:Compra::cancelarInscricao(perfilId, inscricaoId);
+:BEGIN TRANSACTION;
+:SELECT inscricao FOR UPDATE (WHERE id=? AND perfil_id=?);
+if (inscrição encontrada?) then (sim)
+    if (situacao == 'ATIVA') then (sim)
+        :UPDATE inscricoes SET situacao='CANCELADA';
+        :UPDATE tipos_ingresso SET vagas=vagas+1;
+        :COMMIT;
+        :Exibe "Inscrição cancelada. Vaga devolvida.";
+    else (não ATIVA)
+        :ROLLBACK;
+        :Exibe "Inscrição já cancelada/transferida.";
+    endif
+else (não encontrada)
+    :ROLLBACK;
+    :Exibe "Inscrição não encontrada.";
+endif
+
+stop
+
+@enduml
