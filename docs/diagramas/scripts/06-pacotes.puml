@@ -57,7 +57,9 @@ package "src" {
       +reservar(perfilId: int, eventoId: int, tipoIngressoId: int, gratuito: bool): string
       +cancelarInscricao(perfilId: int, inscricaoId: int): string
     }
-    class TesteConexao
+    class TesteConexao {
+      +__construct(pdo: PDO)
+    }
   }
 
   package "view" {

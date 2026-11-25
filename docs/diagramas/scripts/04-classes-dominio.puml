@@ -47,6 +47,12 @@ class Evento {
   +buscarPorId(id: int): array|false
 }
 
+class Organizacao {
+  -id: int
+  -nome: string
+  -situacao: string
+}
+
 class Compra {
   -perfilId: int
   -eventoId: int
@@ -86,6 +92,13 @@ note right of Evento
     data_inicio, local_nome, criado_em
 end note
 
+note right of Organizacao
+  Tabela: organizacoes
+  - id PK
+  - nome
+  - situacao DEFAULT 'APROVADA'
+end note
+
 note right of Compra
   Tabelas: tipos_ingresso, reservas, inscricoes, checkins
   - tipos_ingresso: id, evento_id FK, nome, preco, vagas
@@ -107,11 +120,5 @@ Evento "1" *-- "0..*" Compra : tipos_ingresso / reservas / inscricoes
 Perfil "1" -- "0..*" Compra : reservas / inscricoes / checkins
 Evento "1" -- "1" Organizacao : organizacao_id
 Organizacao "1" *-- "0..*" Evento
-
-class Organizacao {
-  -id: int
-  -nome: string
-  -situacao: string
-}
 
 @enduml
