@@ -1,9 +1,9 @@
 @startuml
-title Rooted – Casos de uso: credenciamento e Seeds
+title Rooted – Casos de uso: Credenciamento e Seeds
 left to right direction
 
-actor "Credenciador" as Credenciador
-actor "Seeds" as Seeds
+actor "Usuário logado\n(participante/organizador/admin)" as Credenciador
+actor "Admin (Seeds)" as Seeds
 
 rectangle "Rooted" {
   usecase "Ver painel de credenciamento" as UC01
@@ -58,8 +58,17 @@ note right of UC08
 end note
 
 note right of UC01
-  Requer login, mas sem verificação
-  de papel/autorização no código atual.
+  Requer apenas login.
+  Sem verificação de papel/autorização
+  no código atual. Qualquer usuário
+  logado acessa /credenciamento.
+end note
+
+note right of UC05
+  Requer papel admin (tipo_perfil='admin').
+  Bloqueado para contas comuns no controller.
+  Admins também acessam áreas
+  participante/organizador/credenciamento.
 end note
 
 @enduml

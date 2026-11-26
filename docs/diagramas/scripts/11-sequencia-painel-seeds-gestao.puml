@@ -5,6 +5,7 @@ actor "Organizador" as Org
 participant "index.php" as Index
 participant "HomeController" as HC
 participant "Evento" as Evento
+participant "Perfil" as Perfil
 participant "Database" as DB
 
 == Painel da Seeds ==

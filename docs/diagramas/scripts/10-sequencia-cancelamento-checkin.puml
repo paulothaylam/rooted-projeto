@@ -75,6 +75,7 @@ note right of Cred
   Inscrição permanece ATIVA.
   Tabela checkins separada com UNIQUE(inscricao_id).
   CPF exibido mascarado: 123.***.***-89
+  Feito direto no HomeController (sem model dedicada).
 end note
 
 @enduml

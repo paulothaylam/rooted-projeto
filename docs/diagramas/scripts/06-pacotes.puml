@@ -88,29 +88,33 @@ Database <.. Compra : provê PDO
 Database <.. TesteConexao : provê PDO
 
 note right of "controller"
-  Front Controller unico:
+  Front Controller único:
   HomeController::mostrar()
   despacha por ?pagina=...
   session_start() em index.php
 end note
 
 note right of "model"
-  Models criam tabelas (garantirTabelas)
+  Models criam tabelas (garantirTabela*)
   e populam exemplos (cadastrarExemplos)
   PDO com ERRMODE_EXCEPTION
+  Apenas 4 classes de domínio reais:
+  Database, Perfil, Evento, Compra
+  (Compra gerencia 3 tabelas:
+  tipos_ingresso, reservas, inscricoes)
 end note
 
 note right of "view"
   Views PHP puras (sem engine de template)
   Bootstrap 5 via CDN (apenas visual)
   layouts/ = header + footer
-  pages/ = 14 paginas funcionais
-  assets/ = css/ js/ (minimos)
+  pages/ = 14 páginas funcionais
+  assets/ = css/ js/ (mínimos)
 end note
 
 note bottom of "Configuracao"
   Docker: PHP-FPM + Nginx + MySQL
-  Variaveis de ambiente para credenciais DB
+  Variáveis de ambiente para credenciais DB
 end note
 
 @enduml

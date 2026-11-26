@@ -4,6 +4,7 @@ actor "Organizador" as User
 participant "index.php" as Index
 participant "HomeController" as HC
 participant "Evento" as Evento
+participant "Compra" as Compra
 participant "Database" as DB
 
 == Painel do Organizador ==
@@ -33,9 +34,12 @@ HC -> DB: INSERT INTO organizacoes (nome) VALUES ('Organização de ' + usuarioN
 DB --> HC: organizacaoId (lastInsertId)
 HC -> DB: INSERT INTO eventos (organizacao_id, nome, descricao, tipo, situacao='RASCUNHO', data_inicio, local_nome) VALUES (...)
 DB --> HC: eventoId (lastInsertId)
-HC -> DB: INSERT INTO tipos_ingresso (evento_id, nome, preco, vagas) VALUES (...)
-note right: GRATUITO/BENEFICENTE: preco=0, nome='Entrada gratuita'/'Contribuição solidária'\nPAGO: preco=50, nome='Ingresso geral'
-DB --> HC: tipoIngressoId
+HC -> Compra: new Compra(PDO)
+HC -> Compra: garantirTabelas()
+HC -> Compra: cadastrarTiposPadrao(eventoId, tipo)
+note right: GRATUITO/BENEFICENTE: preco=0, nome='Entrada'\nPAGO: preco=50, nome='Ingresso geral'
+Compra -> DB: INSERT INTO tipos_ingresso (evento_id, nome, preco, vagas) VALUES (...)
+DB --> Compra: tipoIngressoId
 HC -> DB: COMMIT
 HC --> User: "Evento criado e salvo como rascunho."
 

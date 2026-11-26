@@ -15,6 +15,7 @@ class Perfil {
   -telefone: string
   -senhaHash: string
   -nivelConta: string
+  -tipoPerfil: string
   -criadoEm: string
   +__construct(pdo: PDO)
   +criar(dados: array): void
@@ -73,6 +74,7 @@ note right of Perfil
   - id PK
   - nome, email UNIQUE, cpf UNIQUE
   - telefone, senha_hash (bcrypt)
+  - tipo_perfil ENUM('participante','organizador','admin')
   - nivel_conta DEFAULT 'bronze'
   - criado_em TIMESTAMP
 end note
@@ -80,22 +82,28 @@ end note
 note right of Evento
   Tabelas: organizacoes, eventos
   - organizacoes: id, nome, situacao DEFAULT 'APROVADA'
-  - eventos: id, organizacao_id FK, nome, descricao,
+  - eventos: id, organizacao_id FK, nome, descricao, capa,
     tipo (GRATUITO|PAGO|BENEFICENTE),
     situacao (RASCUNHO|PUBLICADO|EM_APROVACAO),
     data_inicio, local_nome, criado_em
+  - Evento::garantirTabelas() cria AMBAS as tabelas
 end note
 
 note right of Compra
-  Tabelas: tipos_ingresso, reservas, inscricoes, checkins
+  Tabelas: tipos_ingresso, reservas, inscricoes
   - tipos_ingresso: id, evento_id FK, nome, preco, vagas
+    UNIQUE KEY tipo_evento (evento_id, nome)
   - reservas: id, perfil_id FK, evento_id FK,
-    tipo_ingresso_id FK, situacao (ATIVA), vence_em, criado_em
+    tipo_ingresso_id FK, situacao DEFAULT 'ATIVA',
+    vence_em DATETIME, criado_em TIMESTAMP
   - inscricoes: id, perfil_id FK, evento_id FK,
-    tipo_ingresso_id FK, situacao (ATIVA|CANCELADA), criado_em
-    UNIQUE(perfil_id, evento_id)
-  - checkins: id, inscricao_id FK UNIQUE,
-    realizado_por FK, criado_em
+    tipo_ingresso_id FK, situacao DEFAULT 'ATIVA',
+    criado_em TIMESTAMP
+    UNIQUE KEY inscricao_perfil_evento (perfil_id, evento_id)
+  - Compra::garantirTabelas() cria as 3 tabelas
+  - Reserva (pago): cria registro em reservas com vence_em = now()+15min
+  - Inscrição (gratuito): cria reserva + inscricao (situacao='ATIVA')
+  - Check-in: NÃO está nesta classe (feito direto no controller)
 end note
 
 Database <|-- Perfil : usa conexão
@@ -104,14 +112,12 @@ Database <|-- Compra : usa conexão
 Database <|-- TesteConexao : usa conexão
 
 Evento "1" *-- "0..*" Compra : tipos_ingresso / reservas / inscricoes
-Perfil "1" -- "0..*" Compra : reservas / inscricoes / checkins
-Evento "1" -- "1" Organizacao : organizacao_id
-Organizacao "1" *-- "0..*" Evento
+Perfil "1" -- "0..*" Compra : reservas / inscricoes
 
-class Organizacao {
-  -id: int
-  -nome: string
-  -situacao: string
-}
+note right of Evento
+  Organizacao NÃO é classe separada.
+  Evento gerencia tabela organizacoes
+  via organizacao_id FK em eventos.
+end note
 
 @enduml

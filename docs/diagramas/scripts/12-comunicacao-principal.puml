@@ -20,7 +20,7 @@ Perfil -> DB : 1.5: SELECT ... WHERE email = ?
 DB --> Perfil : 1.6: row (id, nome, senha_hash)
 HC -> HC : 1.7: password_verify(senha, senha_hash)
 alt senha OK
-    HC -> HC : 1.8: $_SESSION[usuario_id, nome, email]
+    HC -> HC : 1.8: $_SESSION[usuario_id, nome, email, tipo]
     HC --> User : 1.9: Redirect painel-participante
 else falha
     HC --> User : 1.9: "E-mail ou senha incorretos."
@@ -79,7 +79,7 @@ else novo
     HC -> DB : 5.4: INSERT INTO checkins (inscricao_id, realizado_por)
     HC --> Cred : 5.5: "Entrada: nome · CPF mascarado · ingresso"
 end
-note right: Check-in NÃO muda situacao da inscricao
+note right: Check-in NÃO muda situacao da inscricao\n(feito direto no HomeController)
 
 ' ===== PUBLICAR EVENTO =====
 Org -> HC : 6: POST publicar-evento(eventoId)
@@ -95,5 +95,18 @@ else tipo='GRATUITO'
     Evento -> DB : 6.4: UPDATE eventos SET situacao='PUBLICADO'
     HC --> Org : 6.5: "Publicado na vitrine"
 end
+
+' ===== CRIAR EVENTO =====
+Org -> HC : 7: POST criar-evento(dados)
+HC -> DB : 7.1: BEGIN
+HC -> DB : 7.2: INSERT INTO organizacoes (nome) VALUES ('Organização de ' + usuarioNome)
+DB --> HC : 7.3: organizacaoId
+HC -> DB : 7.4: INSERT INTO eventos (organizacao_id, ..., situacao='RASCUNHO')
+DB --> HC : 7.5: eventoId
+HC -> Compra : 7.6: cadastrarTiposPadrao(eventoId, tipo)
+Compra -> DB : 7.7: INSERT INTO tipos_ingresso (evento_id, nome, preco, vagas)
+DB --> Compra : 7.8: tipoIngressoId
+HC -> DB : 7.9: COMMIT
+HC --> Org : 7.10: "Evento criado como rascunho."
 
 @enduml

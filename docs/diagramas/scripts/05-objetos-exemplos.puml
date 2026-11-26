@@ -28,7 +28,6 @@ object Ev1 {
   situacao = "PUBLICADO"
   dataInicio = "2026-12-12 19:00:00"
   localNome = "Oxygeni Hub - São Luís"
-  organizacao = "Oxygeni Hub"
 }
 
 object Ev2 {
@@ -40,7 +39,6 @@ object Ev2 {
   situacao = "RASCUNHO"
   dataInicio = "2027-01-24 09:00:00"
   localNome = "Centro de Convenções"
-  organizacao = "Seeds Tecnologia"
 }
 
 object Ev3 {
@@ -52,7 +50,6 @@ object Ev3 {
   situacao = "EM_APROVACAO"
   dataInicio = "2027-02-08 14:00:00"
   localNome = "Universidade Ceuma"
-  organizacao = "Ceuma Universidade"
 }
 
 object Perfil1 {

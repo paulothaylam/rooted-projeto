@@ -10,7 +10,8 @@ fork
     :BEGIN TRANSACTION;
     :INSERT INTO organizacoes (nome='Org de {user}');
     :INSERT INTO eventos (situacao='RASCUNHO', ...);
-    :INSERT INTO tipos_ingresso (preco, vagas);
+    :Compra::cadastrarTiposPadrao(eventoId, tipo);
+    :INSERT INTO tipos_ingresso (evento_id, nome, preco, vagas);
     note right: GRATUITO/BENEFICENTE: preco=0\nPAGO: preco=50.00
     :COMMIT;
     :Exibe "Evento criado como rascunho.";
@@ -25,6 +26,7 @@ fork again
     else (rascunho/em_aprovacao)
         if (tipo == 'PAGO') then (PAGO)
             :Exibe "Bloqueado: conecte Mercado Pago.";
+            note right: <<não implementado>>\nPagamento não integrado
         else (GRATUITO ou BENEFICENTE)
             if (tipo == 'GRATUITO') then (GRATUITO)
                 :UPDATE eventos SET situacao='PUBLICADO';
@@ -32,7 +34,7 @@ fork again
             else (BENEFICENTE)
                 :UPDATE eventos SET situacao='EM_APROVACAO';
                 :Exibe "Enviado para aprovação da Seeds.";
-                note right: Aprovação NÃO implementada.\nBotões no painel Seeds\ndesabilitados.
+                note right: <<não implementado>>\nAprovação não implementada.\nBotões no painel Seeds\ndesabilitados.
             endif
         endif
     endif

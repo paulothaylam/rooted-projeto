@@ -25,7 +25,7 @@ para limites e comportamentos detalhados.
 docker compose up -d --build
 ```
 
-Acesse http://localhost:8080.
+Acesse http://localhost:8083.
 
 O banco deste ambiente já recebeu a coluna de tipo de conta e a conta administrativa foi
 promovida. Em uma cópia com banco antigo, aplique uma vez

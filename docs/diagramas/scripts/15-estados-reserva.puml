@@ -5,12 +5,11 @@ title Rooted – Estados: Reserva (Evento Pago)
 state "ATIVA" as ATIVA
 ATIVA : reservas.situacao = 'ATIVA'\nvence_em = now() + 15 min\nvagas decrementada (tipos_ingresso.vagas--)
 
-ATIVA -[#gray]-> EXPIRADA : vence_em passado\n(automático NÃO implementado)
+ATIVA -[#gray]-> EXPIRADA : vence_em passado\n(rotina automática não implementada)
 state "EXPIRADA" as EXPIRADA <<não implementado>>
 EXPIRADA : Deveria liberar vaga\n(tipos_ingresso.vagas++)\nE marcar reserva como EXPIRADA
-
-note right of ATIVA #gray
-  LIMITE DO SISTEMA ATUAL:
+note right of EXPIRADA #gray
+  <<não implementado>>
   PHP NÃO tem rotina que verifica
   reservas vencidas.
   Reserva fica ATIVA indefinidamente
@@ -21,7 +20,7 @@ ATIVA --> [*] : (não há transição de saída\nimplementada no código)
 
 note bottom of ATIVA
   Fluxo real no código:
-  1. Reserva criada com vence_em
+  1. Reserva criada com vence_em via Compra::reservar()
   2. Usuário NÃO paga (sem integração)
   3. Reserva permanece ATIVA
   4. Vaga NÃO é liberada automaticamente
